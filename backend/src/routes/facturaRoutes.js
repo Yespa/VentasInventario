@@ -3,6 +3,7 @@ const router = express.Router();
 const facturaController = require('../controllers/facturaController');
 
 router.post('/facturas', facturaController.crearFactura);
+router.get('/facturas/all', facturaController.obtenerFacturasLimitados);
 router.get('/facturas/:id', facturaController.obtenerFactura);
 router.put('/facturas/:id', facturaController.actualizarFactura);
 router.delete('/facturas/:id', facturaController.eliminarFactura);

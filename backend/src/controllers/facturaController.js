@@ -49,3 +49,17 @@ exports.actualizarFactura = async (req, res) => {
       res.status(500).json({ mensaje: error.message });
     }
   };
+
+  // Obtener facturas con límite especificado en la consulta
+  exports.obtenerFacturasLimitados = async (req, res) => {
+    try {
+      // Obtener el límite de la solicitud y aplicar un límite máximo de 20
+      let limite = parseInt(req.query.limite) || 10;
+      limite = Math.min(limite, 20); // Asegura que el límite no exceda 20
+
+      const facturas = await Factura.find().limit(limite);
+      res.status(200).json(facturas);
+    } catch (error) {
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
