@@ -1,0 +1,9 @@
+exit
+db.productos.find()
+show collections
+db.products.find()
+show collections
+show dbs
+show collections
+db.products.insertOne({name: 'case iphone'})
+db.products.insert({name: 'case iphone'})
