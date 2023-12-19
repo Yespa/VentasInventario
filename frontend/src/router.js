@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import ListProductos from './components/Inventario/ListProductos.vue';
+// import ListFacturas from './components/Facturas/ListFacturas.vue';
+import Ventas from './components/Ventas/Ventas.vue';
 
 
 const routes = [
@@ -9,9 +11,9 @@ const routes = [
       component: ListProductos
     },
     {
-      path: '/facturas',
-      name: 'Facturas',
-      component: ListProductos
+      path: '/ventas',
+      name: 'Ventas',
+      component: Ventas
     },
     // ... otras rutas ...
 ];
