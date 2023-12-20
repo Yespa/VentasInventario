@@ -9,7 +9,7 @@
             <div class="modal-body">
               <p>Resumen de la Compra</p>
               <!-- Muestra detalles de la compra -->
-              <p>Total a Pagar: {{ totalVenta }}</p>
+              <p>Total a Pagar: {{ totalFactura }}</p>
             </div>
 
             <!-- Método de Pago -->
@@ -57,10 +57,18 @@
                     </div>
                 </div>
 
-                <!-- Campo de Cambio Devuelto -->
-                <div class="form-group">
-                    <label for="totalPagado">Total pagado</label>
-                    <input type="number" class="form-control" id="totalPagado" :value="totalPagado" readonly>
+                <div class="row">
+                  <!-- Campo de total pagado -->
+                  <div class="col-md-6">
+                        <label for="totalPagado">Total pagado</label>
+                        <input type="number" class="form-control" id="totalPagado" :value="totalPagado" readonly>
+                  </div>
+
+                    <!-- Columna para cantidad restante -->
+                  <div class="col-md-6">
+                    <label for="restanteTotal">Restante</label>
+                    <input type="number" class="form-control" id="restanteTotal" v-model="restanteTotal" readonly>
+                  </div>
                 </div>
 
                 <!-- Campo de Cambio Devuelto -->
@@ -92,7 +100,7 @@
   
   <script>
   export default {
-    props: ['totalVenta'],
+    props: ['totalFactura'],
     data() {
       return {
         isVisible: false,
@@ -118,26 +126,33 @@
       }
     },
     computed: {
-        totalPagado() {
-            const transferencia = parseInt(this.cantidadRecibidaTransferencia) || 0;
-            const efectivo = parseInt(this.cantidadRecibidaEfectivo) || 0;
-            return  transferencia + efectivo;
-        },
-        cambioDevuelto() {
-            let devueltas = 0
-            if (this.totalPagado > this.totalVenta) {
-                devueltas = this.totalPagado - this.totalVenta;
-            }
-            return devueltas
+      totalPagado() {
+          const transferencia = parseInt(this.cantidadRecibidaTransferencia) || 0;
+          const efectivo = parseInt(this.cantidadRecibidaEfectivo) || 0;
+          return  transferencia + efectivo;
+      },
+      cambioDevuelto() {
+          let devueltas = 0
+          if (this.totalPagado > this.totalFactura) {
+              devueltas = this.totalPagado - this.totalFactura;
+          }
+          return devueltas
+      },
+      restanteTotal() {
+        let restante = 0
+        if (this.totalPagado < this.totalFactura) {
+          restante = this.totalPagado - this.totalFactura;
         }
+        return restante
+      }
     },
     watch: {
-        metodoPago(newValue, oldValue) {
-            if (newValue !== oldValue) {
-                this.cantidadRecibidaTransferencia = 0;
-                this.cantidadRecibidaEfectivo = 0;
-            }
-        }
+      metodoPago(newValue, oldValue) {
+          if (newValue !== oldValue) {
+              this.cantidadRecibidaTransferencia = 0;
+              this.cantidadRecibidaEfectivo = 0;
+          }
+      }
     },
   };
   </script>

@@ -66,3 +66,14 @@ exports.obtenerProductosLimitados = async (req, res) => {
     res.status(500).json({ mensaje: error.message });
   }
 };
+
+// Obtener productos con limite por nombre
+exports.buscarProductosNombreLimitados = async (req, res) => {
+  try {
+    const nombre = req.query.nombre;
+    const productos = await Producto.find({ nombre: new RegExp(nombre, 'i') }).limit(5);
+    res.json(productos);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};

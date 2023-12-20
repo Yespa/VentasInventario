@@ -9,7 +9,7 @@
             <div class="modal-body">
               <p>Resumen de la Compra</p>
               <!-- Muestra detalles de la compra -->
-              <p>Total de la Compra: {{ totalVenta }}</p>
+              <p>Total de la Compra: {{ totalFactura }}</p>
 
                 <!-- Método de Pago -->
                 <div class="form-group">
@@ -85,7 +85,7 @@
   
   <script>
   export default {
-    props: ['totalVenta'],
+    props: ['totalFactura'],
     data() {
       return {
         isVisible: false,
@@ -121,8 +121,8 @@
         },
         cantidadRestante() {
             let restante = 0
-            if (this.totalPagado < this.totalVenta) {
-                restante = this.totalVenta - this.totalPagado;
+            if (this.totalPagado < this.totalFactura) {
+                restante = this.totalFactura - this.totalPagado;
             }
             return restante
         }
