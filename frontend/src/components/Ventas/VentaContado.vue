@@ -6,10 +6,35 @@
             <div class="modal-header">
               <h5 class="modal-title">Venta al Contado</h5>
             </div>
-            <div class="modal-body">
-              <p>Resumen de la Compra</p>
-              <!-- Muestra detalles de la compra -->
-              <p>Total a Pagar: {{ totalFactura }}</p>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+              <p><strong>Nombre del Cliente:</strong> {{ clienteSeleccionado.nombre }}</p>
+
+              <!-- Botón para mostrar/ocultar productos -->
+              <button class="btn btn-link" @click="mostrarProductos = !mostrarProductos">
+                {{ mostrarProductos ? 'Ocultar Productos' : 'Mostrar Productos' }}
+              </button>
+
+              <!-- Sección plegable para los productos -->
+              <div v-if="mostrarProductos">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cant.</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(producto, index) in productosSeleccionados" :key="index">
+                      <td>{{ producto.nombre }}</td>
+                      <td>{{ producto.cantidad }}</td>
+                      <td>{{ (producto.precio_total)}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p class="text-right"><strong>Total a pagar:</strong> {{ (totalFactura) }}</p>
             </div>
 
             <!-- Método de Pago -->
@@ -100,10 +125,12 @@
   
   <script>
   export default {
-    props: ['totalFactura'],
+    
+    props: ['totalFactura', 'clienteSeleccionado', 'productosSeleccionados'],
     data() {
       return {
         isVisible: false,
+        mostrarProductos: false,
         metodoPago: 'efectivo',
         tipoTransferencia: 'bancolombia',
         cantidadRecibidaEfectivo: 0,
@@ -144,7 +171,7 @@
           restante = this.totalPagado - this.totalFactura;
         }
         return restante
-      }
+      },
     },
     watch: {
       metodoPago(newValue, oldValue) {
