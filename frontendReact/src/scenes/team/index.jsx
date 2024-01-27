@@ -31,7 +31,7 @@ const Team = () => {
   const [busquedaTipo, setBusquedaTipo] = useState('nombre')
 
   const buscarProductos = async (busqueda) => {
-    if (busqueda.length < 2) {
+    if (busqueda.length < 3) {
       setOpciones([]);
       return;
     }
@@ -45,10 +45,12 @@ const Team = () => {
 
     try {
       const response = await fetch(url);
+      console.log(response)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const productos = await response.json();
+      console.log(productos)
       setOpciones(productos);
     } catch (error) {
       console.error("No se pudo obtener los productos", error);
@@ -217,7 +219,10 @@ const Team = () => {
         </Stack>
         <Autocomplete
           freeSolo
-          options={opciones.map((opcion) => opcion.nombre || opcion.codigo)}
+          options={opciones}
+          getOptionLabel={(option) => 
+            `${option.nombre} - Código: ${option.codigo} - Cantidad: ${option.cantidad}`
+          }
           onInputChange={(_, newInputValue) => {
             setInputValue(newInputValue);
             buscarProductos(newInputValue);
@@ -225,6 +230,13 @@ const Team = () => {
           inputValue={inputValue}
           renderInput={(params) => (
             <TextField {...params} label={`Buscar por ${busquedaTipo}`} variant="outlined" fullWidth />
+          )}
+          renderOption={(props, option) => (
+            <Box component="li" {...props} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
+              <Typography variant="body1">{option.nombre}</Typography>
+              <Typography variant="body2" color="textSecondary">Código: {option.codigo}</Typography>
+              <Typography variant="body2" color="textSecondary">Cantidad: {option.cantidad}</Typography>
+            </Box>
           )}
         />
       </Box>

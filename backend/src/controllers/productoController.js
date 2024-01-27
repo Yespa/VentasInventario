@@ -92,10 +92,9 @@ exports.buscarProductosLimitados = async (req, res) => {
     if (nombre) {
       query.nombre = new RegExp(nombre, 'i');
     } else if (codigo) {
-      query.codigo = new RegExp(codigo, 'i');
+      const regex = new RegExp("^" + codigo);
+      query.codigo = { $regex: regex };
     }
-
-    console.log(query);
 
     const productos = await Producto.find(query).limit(5);
     res.json(productos);
