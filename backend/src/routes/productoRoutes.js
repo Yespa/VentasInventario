@@ -5,7 +5,8 @@ const productoController = require('../controllers/productoController');
 
 router.post('/productos', productoController.agregarProducto);
 router.get('/productos/all', productoController.obtenerProductosLimitados);
-router.get('/productos/buscar', productoController.buscarProductosNombreLimitados);
+router.get('/productos/buscar', productoController.buscarProductosLimitados);
+router.get('/productos/buscar/:codigo', productoController.buscarProductosCodigo);
 router.get('/productos/:id', productoController.obtenerProducto);
 router.delete('/productos/:id', productoController.eliminarProducto);
 router.put('/productos/:id', productoController.actualizarProducto);

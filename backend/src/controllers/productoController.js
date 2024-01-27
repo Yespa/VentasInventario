@@ -53,6 +53,23 @@ exports.actualizarProducto = async (req, res) => {
   }
 };
 
+// Buscar un producto por código
+exports.buscarProductosCodigo = async (req, res) => {
+  try {
+    const codigoBuscado = req.params.codigo;
+    const producto = await Producto.findOne({ codigo: codigoBuscado });
+
+    if (producto) {
+      res.status(200).json(producto);
+    } else {
+      res.status(404).send('Producto no encontrado');
+    }
+
+  } catch (error) {
+    res.status(500).send('Error en el servidor: ' + error.message);
+  }
+};
+
 // Obtener productos con límite especificado en la consulta
 exports.obtenerProductosLimitados = async (req, res) => {
   try {
@@ -67,11 +84,20 @@ exports.obtenerProductosLimitados = async (req, res) => {
   }
 };
 
-// Obtener productos con limite por nombre
-exports.buscarProductosNombreLimitados = async (req, res) => {
+exports.buscarProductosLimitados = async (req, res) => {
   try {
-    const nombre = req.query.nombre;
-    const productos = await Producto.find({ nombre: new RegExp(nombre, 'i') }).limit(5);
+    const { nombre, codigo } = req.query;
+    let query = {};
+
+    if (nombre) {
+      query.nombre = new RegExp(nombre, 'i');
+    } else if (codigo) {
+      query.codigo = new RegExp(codigo, 'i');
+    }
+
+    console.log(query);
+
+    const productos = await Producto.find(query).limit(5);
     res.json(productos);
   } catch (error) {
     res.status(500).send(error.message);

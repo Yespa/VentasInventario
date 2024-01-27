@@ -37,8 +37,8 @@
 
 <style>
 
-#sidebar-container {
-  min-height: 100vh;
-}
+  #sidebar-container {
+    min-height: 100vh;
+  }
 
 </style>

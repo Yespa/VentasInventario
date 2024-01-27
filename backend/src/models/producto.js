@@ -24,6 +24,10 @@ const productoSchema = new mongoose.Schema({
   precio_sugerido: {
     type: Number,
     required: true
+  },
+  codigo: {
+    type: String,
+    required: true
   }
 });
 
