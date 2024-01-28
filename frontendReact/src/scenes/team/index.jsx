@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Box, useTheme, IconButton, Button, Typography, Stack, TextField, Autocomplete, ToggleButton, ToggleButtonGroup  } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
 import Header from "../../components/Header";
 
 import CachedIcon from '@mui/icons-material/Cached';
@@ -12,8 +11,6 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import CancelIcon from '@mui/icons-material/Cancel';
 import RefreshIcon from '@mui/icons-material/Refresh';
-
-
 
 const Team = () => {
   const theme = useTheme();
@@ -28,7 +25,34 @@ const Team = () => {
   const [cliente, setCliente] = useState(clienteInicial);
   const [opciones, setOpciones] = useState([]);
   const [inputValue, setInputValue] = useState('');
+  const [selectedValue, setSelectedValue] = useState(null);
   const [busquedaTipo, setBusquedaTipo] = useState('nombre')
+  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [totalFactura, setTotalFactura] = useState(0);
+
+  const handleSelectProducto = (event, newValue) => {
+    if (newValue) {
+      const productoExistenteIndex = productosSeleccionados.findIndex(p => p._id === newValue._id);
+  
+      if (productoExistenteIndex !== -1) {
+        // El producto ya existe, aumentar solo la cantidad
+        const nuevosProductos = [...productosSeleccionados];
+        nuevosProductos[productoExistenteIndex].cantidad += 1;
+        nuevosProductos[productoExistenteIndex].precio_total = nuevosProductos[productoExistenteIndex].precio_unitario_venta * nuevosProductos[productoExistenteIndex].cantidad;
+        setProductosSeleccionados(nuevosProductos);
+      } else {
+        // El producto es nuevo, añadir al array con los valores iniciales
+        setProductosSeleccionados([...productosSeleccionados, {
+          ...newValue,
+          cantidad: 1,
+          precio_total: newValue.precio_sugerido,
+          precio_unitario_venta: newValue.precio_sugerido
+        }]);
+      }
+    }
+    setInputValue('');
+    setSelectedValue(null);
+  };
 
   const buscarProductos = async (busqueda) => {
     if (busqueda.length < 3) {
@@ -72,32 +96,68 @@ const Team = () => {
   };
 
   const handleUpdate = (id) => {
-    console.log(id)
+    const nuevosProductos = productosSeleccionados.map((producto) => {
+      if (producto._id === id) {
+        return {
+          ...producto,
+          cantidad: 1,
+          precio_unitario_venta: producto.precio_sugerido,
+          precio_total: producto.precio_sugerido
+        };
+      }
+      return producto;
+    });
+    setProductosSeleccionados(nuevosProductos);
   };
 
   const handleDeleteClick = (id) => {
-    console.log("")
+    const nuevosProductos = productosSeleccionados.filter(producto => producto._id !== id);
+    setProductosSeleccionados(nuevosProductos);
+  };
+
+  const handleCellEditCommit = React.useCallback((params) => {
+    const nuevosProductos = productosSeleccionados.map((producto) => {
+      if (producto._id === params.id) {
+        const nuevoValor = params.field === 'cantidad' ? Number(params.value) : producto.cantidad;
+        const nuevoPrecioUnitario = params.field === 'precio_unitario_venta' ? Number(params.value) : producto.precio_unitario_venta;
+        return {
+          ...producto,
+          cantidad: nuevoValor,
+          precio_unitario_venta: nuevoPrecioUnitario,
+          precio_total: nuevoValor * nuevoPrecioUnitario
+        };
+      }
+      return producto;
+    });
+    setProductosSeleccionados(nuevosProductos);
+  }, [productosSeleccionados]);
+
+  const handleCancelarCompra = () => {
+    setCliente(clienteInicial);
+    setProductosSeleccionados([]);
+    setOpciones([]);
+    setInputValue('');
+    setSelectedValue(null);
+    setBusquedaTipo('nombre');
   };
   
-  const totalFactura = 2200000;
-
   const columns = [
-    { field: "id", headerName: "Código" },
+    { field: "codigo", headerName: "Código" },
     {
-      field: "name",
+      field: "nombre",
       headerName: "Nombre",
       flex: 1,
       cellClassName: "name-column--cell",
     },
     {
-      field: "age",
+      field: "cantidad",
       headerName: "Cantidad",
       flex: 1,
       type: "number",
       editable: true
     },
     {
-      field: "precio_unidad",
+      field: "precio_unitario_venta",
       headerName: "Precio unidad",
       type: "number",
       flex: 1,
@@ -116,7 +176,7 @@ const Team = () => {
       getActions: (params) => [
         <IconButton
           color="secondary"
-          aria-label="editar"
+          aria-label="update"
           onClick={() => handleUpdate(params.id)}
         >
           <CachedIcon />
@@ -132,6 +192,11 @@ const Team = () => {
     }
   ];
 
+  useEffect(() => {
+    // Calcula el total de la factura
+    const total = productosSeleccionados.reduce((sum, producto) => sum + producto.precio_total, 0);
+    setTotalFactura(total);
+  }, [productosSeleccionados]); // Dependencia de productosSeleccionados
 
   return (
     <Box m="20px">
@@ -224,10 +289,14 @@ const Team = () => {
             `${option.nombre} - Código: ${option.codigo} - Cantidad: ${option.cantidad}`
           }
           onInputChange={(_, newInputValue) => {
-            setInputValue(newInputValue);
-            buscarProductos(newInputValue);
+            if (newInputValue !== inputValue) {
+              setInputValue(newInputValue);
+              buscarProductos(newInputValue);
+            }
           }}
           inputValue={inputValue}
+          onChange={handleSelectProducto}
+          value={selectedValue}
           renderInput={(params) => (
             <TextField {...params} label={`Buscar por ${busquedaTipo}`} variant="outlined" fullWidth />
           )}
@@ -270,7 +339,7 @@ const Team = () => {
           mt: 2
         }}
       >
-        <DataGrid rows={mockDataTeam} columns={columns} />
+        <DataGrid rows={productosSeleccionados} columns={columns} getRowId={(row) => row._id} onCellEditCommit={handleCellEditCommit}/>
       </Box>
       <Box sx={{
         mt: 2,
@@ -316,6 +385,7 @@ const Team = () => {
             variant="contained"
             size="large"
             startIcon={<CancelIcon />}
+            onClick={handleCancelarCompra}
             sx={{ bgcolor: 'error.main', '&:hover': { bgcolor: 'error.dark' }, fontSize: '1rem' }}
           >
             Cancelar Compra
