@@ -4,6 +4,7 @@ import { Box, useTheme, IconButton, Button, Typography, Stack, TextField, Autoco
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
+import PaymentDialog from '../../components/PaymentDialogContado';
 
 import CachedIcon from '@mui/icons-material/Cached';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -29,6 +30,9 @@ const Team = () => {
   const [busquedaTipo, setBusquedaTipo] = useState('nombre')
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [totalFactura, setTotalFactura] = useState(0);
+  const [openDialogPago, setOpenDialogPago] = useState(false);
+  const [ventaResumen, setVentaResumen] = useState(null);
+
 
   const handleSelectProducto = (event, newValue) => {
     if (newValue) {
@@ -139,6 +143,28 @@ const Team = () => {
     setInputValue('');
     setSelectedValue(null);
     setBusquedaTipo('nombre');
+  };
+
+  const handleAbrirDialogPago = () => {
+    const ventaResumen = {
+      cliente: cliente,
+      productosSeleccionados: productosSeleccionados
+    };
+
+    console.log(ventaResumen)
+  
+    setVentaResumen(ventaResumen);
+    setOpenDialogPago(true);
+  };
+
+  const handleCerrarDialogPago = () => {
+    setOpenDialogPago(false);
+  };
+
+  const procesarPago = (datosPago) => {
+    console.log("Datos de Pago:", datosPago);
+    // Aquí va tu lógica para procesar el pago
+    // ...
   };
   
   const columns = [
@@ -369,10 +395,20 @@ const Team = () => {
             variant="contained"
             size="large"
             startIcon={<AddShoppingCartIcon />}
+            onClick={handleAbrirDialogPago}
             sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' }, fontSize: '1rem' }}
           >
             Contado
           </Button>
+          {ventaResumen && (
+            <PaymentDialog
+              open={openDialogPago}
+              onClose={handleCerrarDialogPago}
+              totalFactura={totalFactura}
+              procesarPago={procesarPago}
+              ventaResumen={ventaResumen}
+            />
+          )}
           <Button
             variant="contained"
             size="large"
