@@ -15,9 +15,17 @@ import {
   Box,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Table,
+  TableContainer,
+  TableRow,
+  TableBody,
+  TableHead,
+  TableCell,
+  Grid
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { styled } from '@mui/material/styles';
 
 const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen }) => {
   const [metodoPago, setMetodoPago] = useState('efectivo');
@@ -54,6 +62,14 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
     onClose(); 
   };
 
+  const StyledButton = styled(Button)(({ theme }) => ({
+    fontWeight: 'bold',
+    textTransform: 'none',
+    fontSize: '1rem',
+    padding: theme.spacing(1, 2),
+    margin: theme.spacing(1), 
+  }));
+
   useEffect(() => {
     // Calcular la devuelta cada vez que se actualiza el efectivo entregado o el total de la factura
     if (efectivoEntregado > totalFactura) {
@@ -67,24 +83,60 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Procesar Pago</DialogTitle>
       <DialogContent>
-        <Accordion sx={{ marginBottom: 2, boxShadow: 4, borderRadius: 3 }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Resumen de la Venta</Typography>
-          </AccordionSummary>
-          <AccordionDetails style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            <Typography variant="body2" component="div">
-              {/* Aquí se mostrará el resumen de la venta */}
-              Cliente: {ventaResumen.cliente.nombre} <br />
-              Productos: 
-              {ventaResumen.productosSeleccionados.map((producto, index) => (
-                <div key={index}>
-                  {producto.nombre} - Cantidad: {producto.cantidad} - Precio: {producto.precio_unitario_venta}
-                </div>
-              ))}
-            </Typography>
-          </AccordionDetails>
-        </Accordion>
-
+      <Accordion sx={{ marginBottom: 2, boxShadow: 4, borderRadius: 3 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Resumen de la Venta</Typography>
+        </AccordionSummary>
+        <AccordionDetails style={{ maxHeight: '200px', overflowY: 'auto' }}>
+        <Box>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Datos del Cliente
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <Typography variant="body1">Nombre: {ventaResumen.cliente.nombre}</Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography variant="body1">Documento: {ventaResumen.cliente.docIdentidad}</Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography variant="body1">Teléfono: {ventaResumen.cliente.telefono}</Typography>
+            </Grid>
+          </Grid>
+            <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Detalle de Productos</Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Producto</TableCell>
+                    <TableCell align="right">Cantidad</TableCell>
+                    <TableCell align="right">Precio Unitario</TableCell>
+                    <TableCell align="right">Precio Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {ventaResumen.productosSeleccionados.map((producto, index) => (
+                    <TableRow key={index}>
+                      <TableCell component="th" scope="row">
+                        {producto.nombre}
+                      </TableCell>
+                      <TableCell align="right">
+                        {producto.cantidad}
+                      </TableCell>
+                      <TableCell align="right">
+                        {producto.precio_unitario_venta.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                      </TableCell>
+                      <TableCell align="right">
+                        {(producto.precio_unitario_venta * producto.cantidad).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Box sx={{ width: '50%', display: 'inline-flex', boxShadow: 4, borderRadius: 2, padding: 2, backgroundColor: 'background.paper', marginY: 2 }}>
             <Typography variant="h4" sx={{ fontWeight: 'bold', marginRight: 1 }}>
@@ -132,7 +184,7 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
             </Box>
             <Box sx={{ width: '50%' }}>
               <TextField
-                label="Efectivo Entregado"
+                label="Pago en Efectivo"
                 type="number"
                 fullWidth
                 margin="normal"
@@ -236,8 +288,29 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
 
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button onClick={handlePago}>Procesar</Button>
+        <StyledButton 
+          onClick={handleClose} 
+          sx={{ 
+            backgroundColor: 'error.main',
+            '&:hover': {
+              backgroundColor: 'error.dark', 
+            }
+          }}
+        >
+          Cancelar
+        </StyledButton>
+        <StyledButton 
+          onClick={handlePago} 
+          variant="contained" 
+          sx={{ 
+            backgroundColor: 'success.light',
+            '&:hover': {
+              backgroundColor: 'success.main', 
+            }
+          }}
+        >
+          Procesar Pago
+        </StyledButton>
       </DialogActions>
     </Dialog>
   );

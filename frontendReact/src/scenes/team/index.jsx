@@ -4,7 +4,8 @@ import { Box, useTheme, IconButton, Button, Typography, Stack, TextField, Autoco
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
-import PaymentDialog from '../../components/PaymentDialogContado';
+import PaymentDialogContado from '../../components/PaymentDialogContado';
+import PaymentDialogApartado from '../../components/PaymentDialogApartado';
 
 import CachedIcon from '@mui/icons-material/Cached';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -31,6 +32,7 @@ const Team = () => {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [totalFactura, setTotalFactura] = useState(0);
   const [openDialogPago, setOpenDialogPago] = useState(false);
+  const [openDialogApartado, setOpenDialogApartado] = useState(false);
   const [ventaResumen, setVentaResumen] = useState(null);
 
 
@@ -157,8 +159,25 @@ const Team = () => {
     setOpenDialogPago(true);
   };
 
+  const handleAbrirDialogApartado = () => {
+    const ventaResumen = {
+      cliente: cliente,
+      productosSeleccionados: productosSeleccionados
+    };
+
+    console.log(ventaResumen)
+  
+    setVentaResumen(ventaResumen);
+    setOpenDialogApartado(true);
+  };
+
+
   const handleCerrarDialogPago = () => {
     setOpenDialogPago(false);
+  };
+
+  const handleCerrarDialogApartado = () => {
+    setOpenDialogApartado(false);
   };
 
   const procesarPago = (datosPago) => {
@@ -401,7 +420,7 @@ const Team = () => {
             Contado
           </Button>
           {ventaResumen && (
-            <PaymentDialog
+            <PaymentDialogContado
               open={openDialogPago}
               onClose={handleCerrarDialogPago}
               totalFactura={totalFactura}
@@ -413,10 +432,20 @@ const Team = () => {
             variant="contained"
             size="large"
             startIcon={<CreditScoreIcon />}
+            onClick={handleAbrirDialogApartado}
             sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' }, fontSize: '1rem' }}
           >
             Apartado
           </Button>
+          {ventaResumen && (
+            <PaymentDialogApartado
+              open={openDialogApartado}
+              onClose={handleCerrarDialogApartado}
+              totalFactura={totalFactura}
+              procesarPago={procesarPago}
+              ventaResumen={ventaResumen}
+            />
+          )}
           <Button
             variant="contained"
             size="large"
