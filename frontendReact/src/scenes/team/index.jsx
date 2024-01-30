@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, useTheme, IconButton, Button, Typography, Stack, TextField, Autocomplete, ToggleButton, ToggleButtonGroup  } from "@mui/material";
+import { Box, useTheme, IconButton, Button, Typography, Stack, TextField, Autocomplete, ToggleButton, ToggleButtonGroup, Snackbar, Alert } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -29,26 +29,55 @@ const Team = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedValue, setSelectedValue] = useState(null);
   const [busquedaTipo, setBusquedaTipo] = useState('nombre')
-  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [productosVendidos, setProductosVendidos] = useState([]);
   const [totalFactura, setTotalFactura] = useState(0);
   const [openDialogPago, setOpenDialogPago] = useState(false);
   const [openDialogApartado, setOpenDialogApartado] = useState(false);
   const [ventaResumen, setVentaResumen] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+  const [errores, setErrores] = useState({
+    nombre: '',
+    docIdentidad: '',
+    telefono: ''
+  });
+
+  const validarInfoCliente = () => {
+    let esValido = true;
+    let erroresTemp = { nombre: '', docIdentidad: '', telefono: '' };
+  
+    if (!cliente.nombre.trim()) {
+      erroresTemp.nombre = 'El nombre no puede estar vacío.';
+      esValido = false;
+    }
+    if (!cliente.docIdentidad.trim()) {
+      erroresTemp.docIdentidad = 'La identificación no puede estar vacía.';
+      esValido = false;
+    }
+    if (!cliente.telefono.trim()) {
+      erroresTemp.telefono = 'El teléfono no puede estar vacío.';
+      esValido = false;
+    }
+  
+    setErrores(erroresTemp);
+    return esValido;
+  };
 
 
   const handleSelectProducto = (event, newValue) => {
     if (newValue) {
-      const productoExistenteIndex = productosSeleccionados.findIndex(p => p._id === newValue._id);
+      const productoExistenteIndex = productosVendidos.findIndex(p => p._id === newValue._id);
   
       if (productoExistenteIndex !== -1) {
         // El producto ya existe, aumentar solo la cantidad
-        const nuevosProductos = [...productosSeleccionados];
+        const nuevosProductos = [...productosVendidos];
         nuevosProductos[productoExistenteIndex].cantidad += 1;
         nuevosProductos[productoExistenteIndex].precio_total = nuevosProductos[productoExistenteIndex].precio_unitario_venta * nuevosProductos[productoExistenteIndex].cantidad;
-        setProductosSeleccionados(nuevosProductos);
+        setProductosVendidos(nuevosProductos);
       } else {
         // El producto es nuevo, añadir al array con los valores iniciales
-        setProductosSeleccionados([...productosSeleccionados, {
+        setProductosVendidos([...productosVendidos, {
           ...newValue,
           cantidad: 1,
           precio_total: newValue.precio_sugerido,
@@ -102,7 +131,7 @@ const Team = () => {
   };
 
   const handleUpdate = (id) => {
-    const nuevosProductos = productosSeleccionados.map((producto) => {
+    const nuevosProductos = productosVendidos.map((producto) => {
       if (producto._id === id) {
         return {
           ...producto,
@@ -113,34 +142,52 @@ const Team = () => {
       }
       return producto;
     });
-    setProductosSeleccionados(nuevosProductos);
+    setProductosVendidos(nuevosProductos);
   };
 
   const handleDeleteClick = (id) => {
-    const nuevosProductos = productosSeleccionados.filter(producto => producto._id !== id);
-    setProductosSeleccionados(nuevosProductos);
+    const nuevosProductos = productosVendidos.filter(producto => producto._id !== id);
+    setProductosVendidos(nuevosProductos);
   };
 
   const handleCellEditCommit = React.useCallback((params) => {
-    const nuevosProductos = productosSeleccionados.map((producto) => {
+    const nuevosProductos = productosVendidos.map((producto) => {
       if (producto._id === params.id) {
-        const nuevoValor = params.field === 'cantidad' ? Number(params.value) : producto.cantidad;
-        const nuevoPrecioUnitario = params.field === 'precio_unitario_venta' ? Number(params.value) : producto.precio_unitario_venta;
-        return {
-          ...producto,
-          cantidad: nuevoValor,
-          precio_unitario_venta: nuevoPrecioUnitario,
-          precio_total: nuevoValor * nuevoPrecioUnitario
-        };
+        if (params.field === 'cantidad') {
+          // Si el campo editado es 'cantidad' y el nuevo valor es '0', establece el valor a '1'
+          const nuevoValor = Number(params.value);
+          if (nuevoValor === 0) {
+            openSnackbar("La cantidad no puede ser cero. Estableciendo cantidad a uno.", "warning");
+            return {
+              ...producto,
+              cantidad: 1,
+              precio_total: producto.precio_unitario_venta,
+            };
+          } else {
+            return {
+              ...producto,
+              cantidad: nuevoValor,
+              precio_total: nuevoValor * producto.precio_unitario_venta,
+            };
+          }
+        } else if (params.field === 'precio_unitario_venta') {
+          // Si el campo editado es 'precio unitario', actualiza solo ese campo
+          const nuevoPrecioUnitario = Number(params.value);
+          return {
+            ...producto,
+            precio_unitario_venta: nuevoPrecioUnitario,
+            precio_total: producto.cantidad * nuevoPrecioUnitario,
+          };
+        }
       }
       return producto;
     });
-    setProductosSeleccionados(nuevosProductos);
-  }, [productosSeleccionados]);
+    setProductosVendidos(nuevosProductos);
+  }, [productosVendidos]);
 
   const handleCancelarCompra = () => {
     setCliente(clienteInicial);
-    setProductosSeleccionados([]);
+    setProductosVendidos([]);
     setOpciones([]);
     setInputValue('');
     setSelectedValue(null);
@@ -148,29 +195,37 @@ const Team = () => {
   };
 
   const handleAbrirDialogPago = () => {
-    const ventaResumen = {
-      cliente: cliente,
-      productosSeleccionados: productosSeleccionados
-    };
-
-    console.log(ventaResumen)
-  
-    setVentaResumen(ventaResumen);
-    setOpenDialogPago(true);
+    if (totalFactura === 0){
+      openSnackbar("No se puede procesar el pago con total de factura en cero.", "error");
+      return;
+    }else if (validarInfoCliente()) {
+      const ventaResumen = {
+        cliente: cliente,
+        productosVendidos: productosVendidos
+      };
+      console.log(ventaResumen);
+      setVentaResumen(ventaResumen);
+      setOpenDialogPago(true);
+    }
   };
 
   const handleAbrirDialogApartado = () => {
-    const ventaResumen = {
-      cliente: cliente,
-      productosSeleccionados: productosSeleccionados
-    };
+    console.log(totalFactura)
+    console.log(typeof totalFactura)
 
-    console.log(ventaResumen)
-  
-    setVentaResumen(ventaResumen);
-    setOpenDialogApartado(true);
+    if (totalFactura === 0){
+      openSnackbar("No se puede procesar el apartado con total de factura en cero.", "error");
+      return;
+    }else if (validarInfoCliente()) {
+      const ventaResumen = {
+        cliente: cliente,
+        productosVendidos: productosVendidos
+      };
+      console.log(ventaResumen);
+      setVentaResumen(ventaResumen);
+      setOpenDialogApartado(true);
+    }
   };
-
 
   const handleCerrarDialogPago = () => {
     setOpenDialogPago(false);
@@ -237,11 +292,17 @@ const Team = () => {
     }
   ];
 
+  const openSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+  
   useEffect(() => {
     // Calcula el total de la factura
-    const total = productosSeleccionados.reduce((sum, producto) => sum + producto.precio_total, 0);
+    const total = productosVendidos.reduce((sum, producto) => sum + producto.precio_total, 0);
     setTotalFactura(total);
-  }, [productosSeleccionados]); // Dependencia de productosSeleccionados
+  }, [productosVendidos]);
 
   return (
     <Box m="20px">
@@ -267,6 +328,8 @@ const Team = () => {
             variant="outlined"
             value={cliente.nombre}
             onChange={handleChange}
+            error={!!errores.nombre}
+            helperText={errores.nombre} 
             fullWidth
           />
           <TextField
@@ -275,6 +338,8 @@ const Team = () => {
             variant="outlined"
             value={cliente.docIdentidad}
             onChange={handleChange}
+            error={!!errores.docIdentidad}
+            helperText={errores.docIdentidad}
             fullWidth
           />
           <TextField
@@ -283,6 +348,8 @@ const Team = () => {
             variant="outlined"
             value={cliente.telefono}
             onChange={handleChange}
+            error={!!errores.telefono}
+            helperText={errores.telefono}
             fullWidth
           />
           <IconButton onClick={handleRefresh}>
@@ -384,7 +451,7 @@ const Team = () => {
           mt: 2
         }}
       >
-        <DataGrid rows={productosSeleccionados} columns={columns} getRowId={(row) => row._id} onCellEditCommit={handleCellEditCommit}/>
+        <DataGrid rows={productosVendidos} columns={columns} getRowId={(row) => row._id} onCellEditCommit={handleCellEditCommit}/>
       </Box>
       <Box sx={{
         mt: 2,
@@ -455,6 +522,11 @@ const Team = () => {
           >
             Cancelar Compra
           </Button>
+          <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
+            <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </Stack>
       </Box>
     </Box>

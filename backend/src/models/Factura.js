@@ -1,31 +1,74 @@
 const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
-  producto: {
+  producto_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Producto',
     required: true
   },
-  precioVenta: {
+  nombre: {
+    type: String,
+    required: true
+  },
+  descripcion: {
+    type: String,
+    required: false
+  },
+  tipo_producto: {
+    type: String,
+    required: true
+  },
+  cantidad: {
+    type: Number,
+    required: true
+  },
+  precio_inventario: {
+    type: Number,
+    required: true
+  },
+  precio_sugerido: {
+    type: Number,
+    required: true
+  },
+  codigo: {
+    type: String,
+    required: true
+  },
+  precio_total: {
     type: Number,
     required: true
   },
   cantidad: {
     type: Number,
     required: true
+  },
+  precio_unitario_venta: {
+    type: Number,
+    required: true
   }
 });
 
 const facturaSchema = new mongoose.Schema({
-  items: [itemSchema],
-  comprador: {
+  productosVendidos: [itemSchema],
+  cliente: {
     nombre: String,
     celular: String,
     cedula: String
   },
-  fechaCompra: {
+  metodoPago: {
+    type: String,
+    required: true
+  },
+  pagoEfectivo: {
+    type: Number,
+    required: true
+  },
+  pagoTransferencia: {
+    type: Number,
+    required: true
+  },
+  fechaVenta: {
     type: Date,
-    default: Date.now
+    required: true
   },
   vendedor: {
     type: String,

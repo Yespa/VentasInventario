@@ -51,7 +51,8 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
   };
 
   const handlePago = () => {
-    procesarPago({ metodoPago, efectivoEntregado, bancoSeleccionado });
+    const fechaVenta = new Date();
+    procesarPago({ ...ventaResumen, metodoPago, pagoEfectivo: efectivoEntregado, pagoTransferencia, banco: bancoSeleccionado, fechaVenta: fechaVenta.toISOString() });
     onClose();
   };
 
@@ -115,7 +116,7 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventaResumen.productosSeleccionados.map((producto, index) => (
+                  {ventaResumen.productosVendidos.map((producto, index) => (
                     <TableRow key={index}>
                       <TableCell component="th" scope="row">
                         {producto.nombre}

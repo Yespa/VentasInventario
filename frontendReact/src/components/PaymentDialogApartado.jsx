@@ -112,7 +112,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventaResumen.productosSeleccionados.map((producto, index) => (
+                  {ventaResumen.productosVendidos.map((producto, index) => (
                     <TableRow key={index}>
                       <TableCell component="th" scope="row">
                         {producto.nombre}
