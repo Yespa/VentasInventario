@@ -235,10 +235,29 @@ const Team = () => {
     setOpenDialogApartado(false);
   };
 
-  const procesarPago = (datosPago) => {
+  const procesarPago = async (datosPago) => {
     console.log("Datos de Pago:", datosPago);
-    // Aquí va tu lógica para procesar el pago
-    // ...
+    try {
+      const response = await fetch('http://localhost:3000/api/facturas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPago)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al agregar el producto');
+      }
+
+      console.log('Venta registrada');
+      openSnackbar("Se guardó la venta exitosamente", "success");
+      handleCancelarCompra()
+
+    } catch (error) {
+      console.error('Error:', error);
+      openSnackbar("Falló el guardado de la venta", "error");
+    }
   };
   
   const columns = [

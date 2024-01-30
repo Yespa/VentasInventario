@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
-  producto_id: {
+  _id: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'Producto',
     required: true
   },
   nombre: {
@@ -37,10 +38,6 @@ const itemSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  cantidad: {
-    type: Number,
-    required: true
-  },
   precio_unitario_venta: {
     type: Number,
     required: true
@@ -58,11 +55,19 @@ const facturaSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  banco: {
+    type: String,
+    required: true
+  },
   pagoEfectivo: {
     type: Number,
     required: true
   },
   pagoTransferencia: {
+    type: Number,
+    required: true
+  },
+  totalFactura: {
     type: Number,
     required: true
   },

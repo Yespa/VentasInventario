@@ -32,10 +32,15 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [efectivoEntregado, setEfectivoEntregado] = useState('');
   const [pagoTransferencia, setPagoTransferencia] = useState('');
-  const [devuelta, setDevuelta] = useState('');
+  const [devuelta, setDevuelta] = useState(0);
+  const [erroresPago, setErroresPago] = useState({});
 
   const handleMetodoPagoChange = (event) => {
     setMetodoPago(event.target.value);
+    setErroresPago({});
+    setEfectivoEntregado('')
+    setPagoTransferencia('')
+    setBancoSeleccionado('')
   };
 
   const handleBancoChange = (event) => {
@@ -52,16 +57,88 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
 
   const handlePago = () => {
     const fechaVenta = new Date();
-    procesarPago({ ...ventaResumen, metodoPago, pagoEfectivo: efectivoEntregado, pagoTransferencia, banco: bancoSeleccionado, fechaVenta: fechaVenta.toISOString() });
-    onClose();
+
+    const nuevosErrores = {};
+  
+    if (metodoPago === 'efectivo') {
+      if (efectivoEntregado === 0 || efectivoEntregado === '' || efectivoEntregado < totalFactura) {
+        nuevosErrores.pagoEfectivo = 'El valor debe ser igual o mayor al total de la factura';
+      }
+    } 
+    
+    if (metodoPago === 'transferencia') {
+      if (bancoSeleccionado === '') {
+        nuevosErrores.banco = 'Seleccione un banco';
+      }
+    } 
+    
+    if (metodoPago === 'mixto') {
+      if (bancoSeleccionado === '') {
+        nuevosErrores.banco = 'Seleccione un banco';
+      } else if (efectivoEntregado === 0 || efectivoEntregado === '') {
+        nuevosErrores.pagoEfectivo = 'El valor debe ser mayor a 0';
+      } else if (pagoTransferencia === 0 || pagoTransferencia === '') {
+        nuevosErrores.pagoTransferencia = 'El valor debe ser mayor a 0';
+      } else if (((pagoTransferencia + efectivoEntregado) - totalFactura) < 0 ) {
+        nuevosErrores.pagoEfectivo = 'La suma de ambos metodos de pago no supera el valor total';
+      }
+    }
+  
+    // Verifica si hay errores en la validación
+    if (nuevosErrores.pagoEfectivo || nuevosErrores.pagoTransferencia || nuevosErrores.banco) {
+      setErroresPago(nuevosErrores);
+      return;
+    } else {
+
+      let infoFactura = {
+        ...ventaResumen,
+        metodoPago,
+        totalFactura,
+        fechaVenta: fechaVenta.toISOString(),
+        vendedor: "Temp"}
+
+      if (metodoPago === "efectivo"){
+        infoFactura = {
+          ...infoFactura,
+          pagoEfectivo: efectivoEntregado - devuelta,
+          pagoTransferencia: 0,
+          banco: "NoAplica",
+        }
+      } else if (metodoPago === "transferencia") {
+        infoFactura = {
+          ...infoFactura,
+          pagoEfectivo: 0,
+          pagoTransferencia: totalFactura,
+          banco: bancoSeleccionado,
+        }
+      } else if (metodoPago === "mixto") {
+        infoFactura = {
+          ...infoFactura,
+          pagoEfectivo: efectivoEntregado - Math.max(0, efectivoEntregado + pagoTransferencia - totalFactura),
+          pagoTransferencia,
+          banco: bancoSeleccionado,
+        }
+      }
+
+      procesarPago(infoFactura);
+      setEfectivoEntregado('');
+      setBancoSeleccionado('');
+      setPagoTransferencia('');
+      setDevuelta(0);
+      setErroresPago({});
+      onClose();
+    }
   };
 
   const handleClose = () => {
     setEfectivoEntregado('');
     setBancoSeleccionado('');
     setPagoTransferencia('');
+    setDevuelta(0);
+    setErroresPago({});
     onClose(); 
   };
+  
 
   const StyledButton = styled(Button)(({ theme }) => ({
     fontWeight: 'bold',
@@ -191,6 +268,8 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                 margin="normal"
                 value={efectivoEntregado}
                 onChange={handleEfectivoEntregadoChange}
+                error={!!erroresPago.pagoEfectivo}
+                helperText={erroresPago.pagoEfectivo} 
               />
             </Box>
           </Stack>
@@ -206,7 +285,8 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                 value={bancoSeleccionado}
                 label="Banco"
                 onChange={handleBancoChange}
-              >
+                error={!!erroresPago.banco}
+                >
                 <MenuItem value="nequi">Nequi</MenuItem>
                 <MenuItem value="bancolombia">Bancolombia</MenuItem>
               </Select>
@@ -262,6 +342,7 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                   value={bancoSeleccionado}
                   label="Banco"
                   onChange={handleBancoChange}
+                  error={!!erroresPago.banco}
                 >
                   <MenuItem value="nequi">Nequi</MenuItem>
                   <MenuItem value="bancolombia">Bancolombia</MenuItem>
@@ -274,6 +355,8 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                 margin="normal"
                 value={pagoTransferencia}
                 onChange={handlePagoTransferenciaChange}
+                error={!!erroresPago.pagoTransferencia}
+                helperText={erroresPago.pagoTransferencia}
               />
               <TextField
                 label="Pago en Efectivo"
@@ -282,6 +365,8 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
                 margin="normal"
                 value={efectivoEntregado}
                 onChange={handleEfectivoEntregadoChange}
+                error={!!erroresPago.pagoEfectivo}
+                helperText={erroresPago.pagoEfectivo}
               />
             </Box>
           </Stack>

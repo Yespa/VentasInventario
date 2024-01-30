@@ -7,6 +7,7 @@ exports.crearFactura = async (req, res) => {
     const facturaGuardada = await nuevaFactura.save();
     res.status(201).json(facturaGuardada);
   } catch (error) {
+    console.log(error)
     res.status(400).json({ mensaje: error.message });
   }
 };
