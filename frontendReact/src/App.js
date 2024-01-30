@@ -3,10 +3,10 @@ import { Routes, Route } from "react-router-dom";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
-import Team from "./scenes/team";
+import PuntoVenta from "./scenes/puntoVenta";
+import Facturas from "./scenes/facturas";
 import Inventario from "./scenes/inventario";
 import Gastos from "./scenes/gastos";
-import Contacts from "./scenes/contacts";
 import Bar from "./scenes/bar";
 import Form from "./scenes/form";
 import Line from "./scenes/line";
@@ -31,8 +31,8 @@ function App() {
             <Topbar setIsSidebar={setIsSidebar} />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/puntoventa" element={<PuntoVenta />} />
+              <Route path="/facturas" element={<Facturas />} />
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/gastos" element={<Gastos />} />
               <Route path="/form" element={<Form />} />

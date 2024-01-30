@@ -14,7 +14,7 @@ import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import CancelIcon from '@mui/icons-material/Cancel';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-const Team = () => {
+const PuntoVenta = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -552,4 +552,4 @@ const Team = () => {
   );
 };
 
-export default Team;
+export default PuntoVenta;

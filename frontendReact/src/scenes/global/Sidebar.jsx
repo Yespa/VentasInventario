@@ -134,14 +134,14 @@ const Sidebar = () => {
             </Typography>
             <Item
               title="Punto de Venta"
-              to="/team"
+              to="/puntoventa"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
               title="Facturas"
-              to="/contacts"
+              to="/facturas"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
