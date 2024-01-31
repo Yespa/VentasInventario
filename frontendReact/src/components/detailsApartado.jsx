@@ -32,12 +32,17 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [abonoTransferencia, setAbonoTransferencia] = useState('');
   const [abonoEfectivo, setAbonoEfectivo] = useState('');
+  const [pendientePago, setPendientePago] = useState('');
   const [erroresPago, setErroresPago] = useState({});
 
   if (!apartadoInfo) return null;
 
   const handleMetodoPagoChange = (event) => {
     setMetodoPago(event.target.value);
+    setBancoSeleccionado('');
+    setAbonoTransferencia('');
+    setAbonoEfectivo('');
+    setPendientePago(apartadoInfo.saldoPendiente);
     setErroresPago({});
   };
 
@@ -46,11 +51,21 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
   };
 
   const handleabonoEfectivoChange = (event) => {
-    setAbonoEfectivo(Number(event.target.value));
+    const nuevoAbonoEfectivo = Number(event.target.value);
+    setAbonoEfectivo(nuevoAbonoEfectivo);
+    actualizarPendientePago(nuevoAbonoEfectivo, abonoTransferencia);
   };
-
+  
   const handleabonoTransferenciaChange = (event) => {
-    setAbonoTransferencia(Number(event.target.value));
+    const nuevoAbonoTransferencia = Number(event.target.value);
+    setAbonoTransferencia(nuevoAbonoTransferencia);
+    actualizarPendientePago(abonoEfectivo, nuevoAbonoTransferencia);
+  };
+  
+  const actualizarPendientePago = (nuevoAbonoEfectivo, nuevoAbonoTransferencia) => {
+    const nuevoTotalAbonado = nuevoAbonoEfectivo + nuevoAbonoTransferencia;
+    const nuevoSaldoPendiente = apartadoInfo.saldoPendiente - nuevoTotalAbonado;
+    setPendientePago(nuevoSaldoPendiente);
   };
 
   const formatCurrency = (amount) => {
@@ -58,9 +73,6 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
   };
 
   const handleAbono = () => {
-
-    const fechaAbono = new Date();
-
     const nuevosErrores = {};
   
     if (metodoPago === 'efectivo') {
@@ -99,41 +111,55 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
       }
     }
 
-    // Verifica si hay errores en la validación
-    if (nuevosErrores.abonoEfectivo || nuevosErrores.abonoTransferencia || nuevosErrores.banco) {
+    if (Object.keys(nuevosErrores).length > 0) {
       setErroresPago(nuevosErrores);
       return;
     } else {
 
+      let nuevoApartadoInfo = {}
+
       if (metodoPago === "efectivo"){
-        setAbonoTransferencia(0)
-        setBancoSeleccionado('NoAplica')
+        nuevoApartadoInfo = {
+          ...apartadoInfo,
+          pagoTransferencia: 0 + apartadoInfo.pagoTransferencia,
+          pagoEfectivo: abonoEfectivo + apartadoInfo.pagoEfectivo,
+          banco: 'NoAplica'
+        };
       } else if (metodoPago === "transferencia") {
-        setAbonoEfectivo(0)
+        nuevoApartadoInfo = {
+          ...apartadoInfo,
+          pagoTransferencia: abonoTransferencia + apartadoInfo.pagoTransferencia,
+          pagoEfectivo: 0 + apartadoInfo.pagoEfectivo,
+          banco: bancoSeleccionado
+        };
+      } else if (metodoPago === "mixto") {
+        nuevoApartadoInfo = {
+          ...apartadoInfo,
+          pagoTransferencia: abonoTransferencia + apartadoInfo.pagoTransferencia,
+          pagoEfectivo: abonoEfectivo + apartadoInfo.pagoEfectivo,
+          banco: bancoSeleccionado
+        };
       }
 
-      const anteriorMetodoPago = apartadoInfo.metodoPago
-      const anteriorPagoTransferencia = apartadoInfo.pagoTransferencia
-      const anteriorPagoEfectivo = apartadoInfo.pagoEfectivo
-      const anteriorHistorialAbono = apartadoInfo.historialAbonos
+      nuevoApartadoInfo.totalAbonado = nuevoApartadoInfo.pagoTransferencia + nuevoApartadoInfo.pagoEfectivo;
+      nuevoApartadoInfo.saldoPendiente = nuevoApartadoInfo.totalFactura - nuevoApartadoInfo.totalAbonado;
 
-      if (anteriorMetodoPago === "efectivo" || anteriorMetodoPago === "transferencia") {
-        if (anteriorMetodoPago !== metodoPago) {
-          apartadoInfo.metodoPago = "mixto"
+      if (apartadoInfo.metodoPago === "efectivo" || apartadoInfo.metodoPago === "transferencia") {
+        if (apartadoInfo.metodoPago !== metodoPago) {
+          nuevoApartadoInfo.metodoPago = "mixto"
         }
       }
 
-      apartadoInfo.pagoTransferencia = abonoTransferencia + anteriorPagoTransferencia
-      apartadoInfo.pagoEfectivo = abonoEfectivo + anteriorPagoEfectivo
-      apartadoInfo.totalAbonado = apartadoInfo.pagoTransferencia + apartadoInfo.pagoEfectivo
-      apartadoInfo.saldoPendiente = apartadoInfo.totalFactura - apartadoInfo.totalAbonado
+      nuevoApartadoInfo.historialAbonos = [
+        ...nuevoApartadoInfo.historialAbonos,
+        {
+          fechaAbono: new Date().toISOString(),
+          abono: (abonoEfectivo || 0) + (abonoTransferencia || 0),
+        }
+      ];
 
-      const infoAbono = {
-        fechaAbono: fechaAbono.toISOString(),
-        abono: 0,
-      }
-
-      apartadoInfo.historialAbonos = anteriorHistorialAbono.append(infoAbono)
+      console.log(nuevoApartadoInfo)
+      console.log(apartadoInfo)
     }
   };
 
@@ -179,11 +205,11 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
 
         <Accordion sx={{ marginBottom: 2, boxShadow: 4, borderRadius: 3, mt: 2 }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Resumen de la Venta</Typography>
+            <Typography>Resumen</Typography>
           </AccordionSummary>
           <AccordionDetails style={{ maxHeight: '200px', overflowY: 'auto' }}>
             <Box>     
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1, mb: 2 }}>Detalle de Pago</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1, mb: 2 }}>Productos</Typography>
               <TableContainer>
                 <Table stickyHeader>
                   <TableHead>
@@ -207,15 +233,45 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
                 </Table>
               </TableContainer>
 
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Detalle del Abono</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Historial de Abonos</Typography>
+
+              <TableContainer>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Fecha Abono</TableCell>
+                      <TableCell align="right">Cantidad abonada</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {apartadoInfo.historialAbonos.map((abono) => (
+                      <TableRow key={abono._id}>
+                        <TableCell>{new Date(apartadoInfo.fechaApartado).toLocaleString('es-CO', {
+                            year: 'numeric',
+                            month: 'numeric',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: true
+                        })}
+                        </TableCell>
+                        <TableCell align="right">{formatCurrency(abono.abono)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Info total Abono</Typography>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Pago Transferencia:</span> {formatCurrency(apartadoInfo.abonoTransferencia)}</Typography>
+                  <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Pago Transferencia:</span> {formatCurrency(apartadoInfo.pagoTransferencia)}</Typography>
                   <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Banco:</span> {apartadoInfo.banco}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Método de Pago:</span> {apartadoInfo.metodoPago}</Typography>
-                  <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Pago Efectivo:</span> {formatCurrency(apartadoInfo.abonoEfectivo)}</Typography>
+                  <Typography variant="body1"><span style={{ fontWeight: 'bold' }}>Pago Efectivo:</span> {formatCurrency(apartadoInfo.pagoEfectivo)}</Typography>
                 </Grid>
               </Grid>
 
@@ -223,7 +279,7 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
           </AccordionDetails>
         </Accordion>
 
-        <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Detalle del Abono</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>Saldos a la fecha:</Typography>
         <Grid container spacing={2} justifyContent="space-between">
           <Grid item xs={6}>
             <Box sx={{ 
@@ -287,7 +343,7 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
 
         <Accordion sx={{ marginBottom: 2, boxShadow: 4, borderRadius: 3, mt: 2 }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Ingreso de Abono</Typography>
+            <Typography>Registro de Abono</Typography>
           </AccordionSummary>
           <AccordionDetails>
 
@@ -301,11 +357,11 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
                 backgroundColor: 'background.paper',
               }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', marginRight: 1  }}>
-                  Restante por pagar:
-                </Typography>
-                <Typography sx={{ fontSize: '1rem', alignSelf: 'center' }}>
-                  dd
-                </Typography>
+                Restante por pagar:
+              </Typography>
+              <Typography sx={{ fontSize: '1rem', alignSelf: 'center' }}>
+                {pendientePago.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+              </Typography>
             </Box>
             
             <Box sx={{ width: '50%' }}>
