@@ -71,6 +71,16 @@ const Facturas = () => {
       field: "fechaVenta",
       headerName: "Fecha",
       flex: 1,
+      valueGetter: (params) => {
+        return new Date(params.row.fechaVenta).toLocaleString('es-CO', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      },
     },
     {
       field: "metodoPago",
@@ -81,6 +91,14 @@ const Facturas = () => {
       field: "pagoTransferencia",
       headerName: "P. Transferencia",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.pagoTransferencia.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: "banco",
@@ -91,11 +109,27 @@ const Facturas = () => {
       field: "pagoEfectivo",
       headerName: "P. Efectivo",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.pagoEfectivo.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: "totalFactura",
       headerName: "Total Factura",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.totalFactura.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: "vendedor",

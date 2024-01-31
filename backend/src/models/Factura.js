@@ -48,8 +48,8 @@ const facturaSchema = new mongoose.Schema({
   productosVendidos: [itemSchema],
   cliente: {
     nombre: String,
-    celular: String,
-    cedula: String
+    telefono: String,
+    docIdentidad: String
   },
   metodoPago: {
     type: String,

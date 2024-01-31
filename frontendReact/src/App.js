@@ -7,6 +7,7 @@ import PuntoVenta from "./scenes/puntoVenta";
 import Facturas from "./scenes/facturas";
 import Inventario from "./scenes/inventario";
 import Gastos from "./scenes/gastos";
+import Apartados from "./scenes/apartado";
 import Bar from "./scenes/bar";
 import Form from "./scenes/form";
 import Line from "./scenes/line";
@@ -35,6 +36,7 @@ function App() {
               <Route path="/facturas" element={<Facturas />} />
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/gastos" element={<Gastos />} />
+              <Route path="/apartados" element={<Apartados />} />
               <Route path="/form" element={<Form />} />
               <Route path="/bar" element={<Bar />} />
               <Route path="/pie" element={<Pie />} />

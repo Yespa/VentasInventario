@@ -27,17 +27,20 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
 
-const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, ventaResumen }) => {
+const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, ventaResumen }) => {
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [efectivoEntregado, setEfectivoEntregado] = useState('');
   const [pagoTransferencia, setPagoTransferencia] = useState('');
   const [pendientePago, setPendientePago] = useState(0);
+  const [erroresPago, setErroresPago] = useState({});
 
   const handleMetodoPagoChange = (event) => {
     setMetodoPago(event.target.value);
+    setErroresPago({});
     setEfectivoEntregado('')
     setPagoTransferencia('')
+    setBancoSeleccionado('')
   };
 
   const handleBancoChange = (event) => {
@@ -52,15 +55,114 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
     setPagoTransferencia(Number(event.target.value));
   };
 
-  const handlePago = () => {
-    procesarPago({ metodoPago, efectivoEntregado, bancoSeleccionado });
-    onClose();
+  const handleApartado = () => {
+
+    const fechaApartado = new Date();
+
+    const nuevosErrores = {};
+  
+    if (metodoPago === 'efectivo') {
+      if (efectivoEntregado === 0 || efectivoEntregado === '') {
+        nuevosErrores.pagoEfectivo = 'El valor debe ser mayor a 0';
+      }
+      if (efectivoEntregado >= totalFactura) {
+        nuevosErrores.pagoEfectivo = 'Con esto puedes realizar la venta y no un apartado';
+      }
+    } 
+    
+    if (metodoPago === 'transferencia') {
+      if (bancoSeleccionado === '') {
+        nuevosErrores.banco = 'Seleccione un banco';
+      }
+      if (pagoTransferencia === 0 || pagoTransferencia === '') {
+        nuevosErrores.pagoTransferencia = 'El valor debe ser mayor a 0';
+      }
+      if (pagoTransferencia >= totalFactura) {
+        nuevosErrores.pagoTransferencia = 'Con esto puedes realizar la venta y no un apartado';
+      }
+    } 
+    
+    if (metodoPago === 'mixto') {
+      if (bancoSeleccionado === '') {
+        nuevosErrores.banco = 'Seleccione un banco';
+      }
+      if (efectivoEntregado === 0 || efectivoEntregado === '') {
+        nuevosErrores.pagoEfectivo = 'El valor debe ser mayor a 0';
+      }
+      if (pagoTransferencia === 0 || pagoTransferencia === '') {
+        nuevosErrores.pagoTransferencia = 'El valor debe ser mayor a 0';
+      }
+      if (efectivoEntregado >= totalFactura || pagoTransferencia >= totalFactura || (pagoTransferencia + efectivoEntregado) >= totalFactura) {
+        nuevosErrores.pagoEfectivo = 'Con esto puedes realizar la venta y no un apartado';
+      }
+    }
+
+    // Verifica si hay errores en la validación
+    if (nuevosErrores.pagoEfectivo || nuevosErrores.pagoTransferencia || nuevosErrores.banco) {
+      setErroresPago(nuevosErrores);
+      return;
+    } else {
+
+      let infoApartado = {
+        ...ventaResumen,
+        metodoPago,
+        totalFactura,
+        saldoPendiente: pendientePago,
+        fechaApartado: fechaApartado.toISOString(),
+        estado: "PENDIENTE",
+        vendedor: "Temp"}
+
+      if (metodoPago === "efectivo"){
+        infoApartado = {
+          ...infoApartado,
+          pagoEfectivo: efectivoEntregado,
+          pagoTransferencia: 0,
+          banco: "NoAplica",
+          historialAbonos: [{
+            fechaAbono: fechaApartado,
+            abono: efectivoEntregado
+          }],
+          totalAbonado: efectivoEntregado
+        }
+      } else if (metodoPago === "transferencia") {
+        infoApartado = {
+          ...infoApartado,
+          pagoEfectivo: 0,
+          pagoTransferencia,
+          banco: bancoSeleccionado,
+          historialAbonos: [{
+            fechaAbono: fechaApartado.toISOString(),
+            abono: pagoTransferencia
+          }],
+          totalAbonado: pagoTransferencia,
+        }
+      } else if (metodoPago === "mixto") {
+        infoApartado = {
+          ...infoApartado,
+          pagoEfectivo: efectivoEntregado,
+          pagoTransferencia,
+          banco: bancoSeleccionado,
+          historialAbonos: [{
+            fechaAbono: fechaApartado.toISOString(),
+            abono: efectivoEntregado + pagoTransferencia
+          }],
+          totalAbonado: efectivoEntregado + pagoTransferencia
+        }
+      }
+      procesarApartado(infoApartado);
+      setEfectivoEntregado('');
+      setBancoSeleccionado('');
+      setPagoTransferencia('');
+      setErroresPago({});
+      onClose();
+    }
   };
 
   const handleClose = () => {
     setEfectivoEntregado('');
     setBancoSeleccionado('');
     setPagoTransferencia('');
+    setErroresPago({});
     onClose(); 
   };
 
@@ -73,7 +175,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
   }));
 
   useEffect(() => {
-    setPendientePago(Math.max(0, totalFactura - (efectivoEntregado + pagoTransferencia)).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }));
+    setPendientePago(Math.max(0, totalFactura - (efectivoEntregado + pagoTransferencia)));
   }, [pagoTransferencia, efectivoEntregado, totalFactura]);
 
   return (
@@ -176,7 +278,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                 Restante por pagar:
               </Typography>
               <Typography sx={{ fontSize: '1rem', alignSelf: 'center' }}>
-                {pendientePago}
+                {pendientePago.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
               </Typography>
             </Box>
             <Box sx={{ width: '50%' }}>
@@ -187,6 +289,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                 margin="normal"
                 value={efectivoEntregado}
                 onChange={handleEfectivoEntregadoChange}
+                error={!!erroresPago.pagoEfectivo}
+                helperText={erroresPago.pagoEfectivo}
               />
             </Box>
           </Stack>
@@ -209,7 +313,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                   Restante por pagar:
                 </Typography>
                 <Typography sx={{ fontSize: '1rem' }}>
-                  {pendientePago}
+                  {pendientePago.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
                 </Typography>
               </Box>
 
@@ -226,6 +330,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                   value={bancoSeleccionado}
                   label="Banco"
                   onChange={handleBancoChange}
+                  error={!!erroresPago.banco}
                 >
                   <MenuItem value="nequi">Nequi</MenuItem>
                   <MenuItem value="bancolombia">Bancolombia</MenuItem>
@@ -240,6 +345,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                 margin="normal"
                 value={pagoTransferencia}
                 onChange={handlePagoTransferenciaChange}
+                error={!!erroresPago.pagoTransferencia}
+                helperText={erroresPago.pagoTransferencia}
               />
             </Box>
           </Stack>
@@ -262,7 +369,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                   Restante por Pagar:
                 </Typography>
                 <Typography sx={{ fontSize: '1rem', alignSelf: 'center' }}>
-                  {pendientePago}
+                  {pendientePago.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
                 </Typography>
               </Box>
             </Box>
@@ -277,6 +384,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                   value={bancoSeleccionado}
                   label="Banco"
                   onChange={handleBancoChange}
+                  error={!!erroresPago.banco}
                 >
                   <MenuItem value="nequi">Nequi</MenuItem>
                   <MenuItem value="bancolombia">Bancolombia</MenuItem>
@@ -289,6 +397,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                 margin="normal"
                 value={pagoTransferencia}
                 onChange={handlePagoTransferenciaChange}
+                error={!!erroresPago.pagoTransferencia}
+                helperText={erroresPago.pagoTransferencia}
               />
               <TextField
                 label="Pago en Efectivo"
@@ -297,6 +407,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
                 margin="normal"
                 value={efectivoEntregado}
                 onChange={handleEfectivoEntregadoChange}
+                error={!!erroresPago.pagoEfectivo}
+                helperText={erroresPago.pagoEfectivo}
               />
             </Box>
           </Stack>
@@ -316,7 +428,7 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarPago, vent
           Cancelar
         </StyledButton>
         <StyledButton 
-          onClick={handlePago} 
+          onClick={handleApartado} 
           variant="contained" 
           sx={{ 
             backgroundColor: 'warning.light',

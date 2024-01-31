@@ -75,11 +75,14 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
     if (metodoPago === 'mixto') {
       if (bancoSeleccionado === '') {
         nuevosErrores.banco = 'Seleccione un banco';
-      } else if (efectivoEntregado === 0 || efectivoEntregado === '') {
+      } 
+      if (efectivoEntregado === 0 || efectivoEntregado === '') {
         nuevosErrores.pagoEfectivo = 'El valor debe ser mayor a 0';
-      } else if (pagoTransferencia === 0 || pagoTransferencia === '') {
+      } 
+      if (pagoTransferencia === 0 || pagoTransferencia === '') {
         nuevosErrores.pagoTransferencia = 'El valor debe ser mayor a 0';
-      } else if (((pagoTransferencia + efectivoEntregado) - totalFactura) < 0 ) {
+      }
+      if (((pagoTransferencia + efectivoEntregado) - totalFactura) < 0 ) {
         nuevosErrores.pagoEfectivo = 'La suma de ambos metodos de pago no supera el valor total';
       }
     }

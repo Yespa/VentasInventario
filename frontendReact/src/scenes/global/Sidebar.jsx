@@ -9,6 +9,7 @@ import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import CreditScoreOutlinedIcon from '@mui/icons-material/CreditScoreOutlined';
 import BalanceOutlinedIcon from '@mui/icons-material/BalanceOutlined';
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -157,6 +158,13 @@ const Sidebar = () => {
               title="Gastos"
               to="/gastos"
               icon={<PaymentsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Apartados"
+              to="/apartados"
+              icon={<CreditScoreOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

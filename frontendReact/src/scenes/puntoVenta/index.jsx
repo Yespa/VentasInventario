@@ -210,8 +210,6 @@ const PuntoVenta = () => {
   };
 
   const handleAbrirDialogApartado = () => {
-    console.log(totalFactura)
-    console.log(typeof totalFactura)
 
     if (totalFactura === 0){
       openSnackbar("No se puede procesar el apartado con total de factura en cero.", "error");
@@ -260,6 +258,31 @@ const PuntoVenta = () => {
     }
   };
   
+  const procesarApartado = async (datosApartado) => {
+    console.log("Datos de apartado:", datosApartado);
+    try {
+      const response = await fetch('http://localhost:3000/api/apartados', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosApartado)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al agregar el apartado');
+      }
+
+      console.log('Apartado registrada');
+      openSnackbar("Se guardó el apartado exitosamente", "success");
+      // handleCancelarCompra()
+
+    } catch (error) {
+      console.error('Error:', error);
+      openSnackbar("Falló el guardado del apartado", "error");
+    }
+  };
+
   const columns = [
     { field: "codigo", headerName: "Código" },
     {
@@ -528,7 +551,7 @@ const PuntoVenta = () => {
               open={openDialogApartado}
               onClose={handleCerrarDialogApartado}
               totalFactura={totalFactura}
-              procesarPago={procesarPago}
+              procesarApartado={procesarApartado}
               ventaResumen={ventaResumen}
             />
           )}
