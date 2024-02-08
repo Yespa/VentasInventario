@@ -56,11 +56,13 @@ exports.actualizarGasto = async (req, res) => {
 // Obtener gastos con límite especificado en la consulta
 exports.obtenerGastosLimitados = async (req, res) => {
   try {
-    // Obtener el límite de la solicitud y aplicar un límite máximo de 20
+    // Obtener el límite de la solicitud y aplicar un límite máximo de 50
     let limite = parseInt(req.query.limite) || 10;
-    limite = Math.min(limite, 20); // Asegura que el límite no exceda 20
+    limite = Math.min(limite, 50); // Asegura que el límite no exceda 50
 
-    const gastos = await Gasto.find().limit(limite);
+    // const gastos = await Gasto.find().limit(limite);
+    const gastos = await Gasto.find().sort({fecha: -1}).limit(limite);
+
     res.status(200).json(gastos);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });

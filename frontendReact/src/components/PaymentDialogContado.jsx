@@ -122,7 +122,7 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
           banco: bancoSeleccionado,
         }
       }
-
+      
       procesarPago(infoFactura);
       setEfectivoEntregado('');
       setBancoSeleccionado('');

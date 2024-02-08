@@ -27,7 +27,7 @@ import {
 import { styled } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
+const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [abonoTransferencia, setAbonoTransferencia] = useState('');
@@ -43,6 +43,13 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
     setAbonoTransferencia('');
     setAbonoEfectivo('');
     setPendientePago(apartadoInfo.saldoPendiente);
+    setErroresPago({});
+  };
+
+  const resetForm = () => {
+    setBancoSeleccionado('');
+    setAbonoTransferencia('');
+    setAbonoEfectivo('');
     setErroresPago({});
   };
 
@@ -70,6 +77,28 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
 
   const formatCurrency = (amount) => {
     return amount.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+  };
+
+  const procesarPago = async (datosPago) => {
+    console.log("Datos de Pago:", datosPago);
+    try {
+      const response = await fetch('http://localhost:3000/api/facturas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPago)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al agregar el producto');
+      }
+
+      console.log('Venta registrada');
+
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const handleAbono = () => {
@@ -158,9 +187,34 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
         }
       ];
 
-      console.log(nuevoApartadoInfo)
-      console.log(apartadoInfo)
+      let infoFactura = {
+        cliente: nuevoApartadoInfo.cliente,
+        productosVendidos: nuevoApartadoInfo.productosVendidos,
+        pagoEfectivo: nuevoApartadoInfo.pagoEfectivo,
+        pagoTransferencia: nuevoApartadoInfo.pagoTransferencia,
+        banco: nuevoApartadoInfo.banco,
+        metodoPago: nuevoApartadoInfo.metodoPago,
+        totalFactura: nuevoApartadoInfo.totalFactura,
+        fechaVenta: new Date().toISOString(),
+        vendedor: nuevoApartadoInfo.vendedor
+      }
+
+      if (nuevoApartadoInfo.saldoPendiente === 0){
+        console.log("registro apartado como venta")
+        nuevoApartadoInfo.estado = "PAGADO"
+        procesarPago(infoFactura)
+      }
+
+
+      onSave(nuevoApartadoInfo)
+      resetForm();
+      onClose()
     }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const StyledButton = styled(Button)(({ theme }) => ({
@@ -172,7 +226,7 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
   }));
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Detalle de Apartado</DialogTitle>
       <DialogContent>
         <Box mb={2} display="flex" justifyContent="space-between">
@@ -246,7 +300,7 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
                   <TableBody>
                     {apartadoInfo.historialAbonos.map((abono) => (
                       <TableRow key={abono._id}>
-                        <TableCell>{new Date(apartadoInfo.fechaApartado).toLocaleString('es-CO', {
+                        <TableCell>{new Date(abono.fechaAbono).toLocaleString('es-CO', {
                             year: 'numeric',
                             month: 'numeric',
                             day: 'numeric',
@@ -480,7 +534,7 @@ const ApartadoDialog = ({ apartadoInfo, open, handleClose }) => {
       </DialogContent>
       <DialogActions>
         <StyledButton 
-          onClick={handleClose} 
+          onClick={handleClose}
           sx={{ 
             backgroundColor: 'error.main',
             '&:hover': {

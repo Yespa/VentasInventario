@@ -17,11 +17,13 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    cargarTiposProducto();
+    if (open){
+      cargarTiposProducto();
+    }
     if (productToEdit) {
       setProduct(productToEdit);
     }
-  }, [productToEdit]);
+  }, [open, productToEdit]);
 
   const validate = async () => {
     let tempErrors = {};
@@ -73,6 +75,7 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
       precio_inventario: 0,
       precio_sugerido: 0
     });
+    setTiposProducto([])
     setErrors({});
   };
 

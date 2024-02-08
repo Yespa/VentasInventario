@@ -4,9 +4,10 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import DetailsFacture from '../../components/detailsFacture';
+import PrintFactura from '../../components/printFactura';
 
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
-
+import PrintIcon from '@mui/icons-material/Print';
 
 const Facturas = () => {
   const theme = useTheme();
@@ -18,11 +19,18 @@ const Facturas = () => {
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [facturaParaImprimir, setFacturaParaImprimir] = useState(null);
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Puede ser "success" o "error"
 
   const handleOpenDialog = (factura) => {
     setFacturaSeleccionada(factura);
     setDialogOpen(true);
+  };
+
+  const handlePrint = (factura) => {
+    console.log(factura)
+    setFacturaParaImprimir(factura);
+    imprimirFactura(factura);
   };
 
   const handleCloseDialog = () => {
@@ -45,7 +53,7 @@ const Facturas = () => {
 
   const obtenerFacturas = async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=15");
+      const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=50");
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -56,6 +64,39 @@ const Facturas = () => {
       console.log("Error al obtener facturas:", error);
     }
   };
+
+  const imprimirFactura = (datosFactura) => {
+    setTimeout(() => {
+      const ventanaImpresion = window.open('', '_blank', 'width=50mm');
+      ventanaImpresion.document.write(`
+        <html>
+        <head>
+          <title>Impresión de Factura</title>
+          <style>
+            body, html {
+              width: 58mm;
+              font-family: 'Arial', sans-serif;
+            }
+            img {
+              max-width: 30mm;
+              height: auto;
+              margin-top: 5px;
+              margin-bottom: 5px;
+            }
+            /* Añade aquí más estilos según sea necesario */
+          </style>
+        </head>
+        <body>
+          ${document.getElementById('facturaParaImprimir').innerHTML}
+        </body>
+        </html>
+      `);
+      ventanaImpresion.document.close();
+      ventanaImpresion.focus();
+      ventanaImpresion.print();
+      // ventanaImpresion.close(); // Descomenta si deseas que la ventana se cierre automáticamente después de imprimir
+    }, 500);
+  };  
   
   useEffect(() => {
     obtenerFacturas();
@@ -149,6 +190,13 @@ const Facturas = () => {
         >
           <PlagiarismIcon />
         </IconButton>,
+        <IconButton
+          color="secondary"
+          aria-label="imprimir"
+          onClick={() => handlePrint(params.row)}
+        >
+        <PrintIcon/>
+        </IconButton>
       ],
     }
   ];
@@ -212,6 +260,9 @@ const Facturas = () => {
             {snackbarMessage}
           </Alert>
         </Snackbar>
+        <div id="facturaParaImprimir" style={{ display: "none" }}>
+          {facturaParaImprimir && <PrintFactura datosFactura={facturaParaImprimir} />}
+        </div>
       </Box>
     </Box>
     

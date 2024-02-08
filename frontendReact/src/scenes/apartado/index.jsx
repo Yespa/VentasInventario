@@ -46,7 +46,7 @@ const Apartados = () => {
 
   const obtenerApartados = async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/apartados/all?limite=15");
+      const respuesta = await fetch("http://localhost:3000/api/apartados/all?limite=50");
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -57,6 +57,33 @@ const Apartados = () => {
       console.log("Error al obtener apartados:", error);
     }
   };
+
+  const handleSaveEditedApartado = async (editedApartado) => {
+    try {
+      console.log(editedApartado);
+
+      const response = await fetch(`http://localhost:3000/api/apartados/${editedApartado._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedApartado)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Error al actualizar el apartado');
+      }
+  
+      console.log('Apartado actualizado');
+      obtenerApartados();
+      openSnackbar("Apartado actualizado exitosamente", "success");
+  
+    } catch (error) {
+      console.error('Error:', error);
+      openSnackbar("Falló la actualización del Apartado", "error");
+    }
+  };
+  
   
   useEffect(() => {
     obtenerApartados();
@@ -127,6 +154,11 @@ const Apartados = () => {
           maximumFractionDigits: 0,
         });
       }
+    },
+    {
+      field: "estado",
+      headerName: "Estado",
+      flex: 1
     },
     {
       field: "vendedor",
@@ -202,7 +234,9 @@ const Apartados = () => {
         <DetailsApartado
           apartadoInfo={apartadoSeleccionado}
           open={dialogOpen}
-          handleClose={handleCloseDialog}
+          onClose={handleCloseDialog}
+          onSave={handleSaveEditedApartado}
+
         />
         <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={closeSnackbar}>
           <Alert onClose={closeSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>

@@ -16,11 +16,13 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    cargarTiposGasto();
+    if (open){
+      cargarTiposGasto();
+    }
     if (gastoToEdit) {
       setGasto(gastoToEdit);
     }
-  }, [gastoToEdit]);
+  }, [open, gastoToEdit]);
 
   const validate = async () => {
     let tempErrors = {};
@@ -59,6 +61,7 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
       fecha: ''
     });
     setErrors({});
+    setTiposGasto([]);
   };
 
   const cargarTiposGasto = async () => {

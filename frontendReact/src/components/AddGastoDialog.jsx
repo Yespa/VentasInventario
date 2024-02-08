@@ -44,9 +44,11 @@ const AddGastoDialog = ({ open, onClose, onSave }) => {
 
   const handleSave = async () => {
     if (await validate()) {
-        onSave(newGasto);
-        resetForm();
-        onClose();
+      const fecha = new Date();
+      newGasto.fecha = fecha.toISOString();
+      onSave(newGasto);
+      resetForm();
+      onClose();
     }
   };
 
@@ -65,13 +67,15 @@ const AddGastoDialog = ({ open, onClose, onSave }) => {
       fecha: ''
     });
     setErrors({});
+    setTiposGasto([]);
   };
 
   useEffect(() => {
-    cargarTiposGasto();
-  }, []);
+    if (open){
+      cargarTiposGasto();
+    }
+  }, [open]);
   
-
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Agregar Nuevo Gasto</DialogTitle>

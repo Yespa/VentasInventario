@@ -73,7 +73,7 @@ const Gastos = () => {
 
   const obtenerGastos= async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/gastos/all?limite=15");
+      const respuesta = await fetch("http://localhost:3000/api/gastos/all?limite=50");
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -201,7 +201,16 @@ const Gastos = () => {
       field: "fecha",
       headerName: "Fecha",
       flex: 1,
-      cellClassName: "name-column--cell",
+      valueGetter: (params) => {
+        return new Date(params.row.fecha).toLocaleString('es-CO', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      },
     },
     {
       field: 'acciones',

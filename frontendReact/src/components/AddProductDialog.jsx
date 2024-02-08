@@ -16,6 +16,12 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
 
   const [tiposProducto, setTiposProducto] = useState([]);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (open){
+      cargarTiposProducto();
+    }
+  }, [open]);
   
   const validate = async () => {
     let tempErrors = {};
@@ -40,7 +46,6 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     return Object.values(tempErrors).every(x => x === ""); // Retorna true si no hay errores
   };
 
-
   const cargarTiposProducto = async () => {
     try {
       const respuesta = await fetch('http://localhost:3000/api/tipos/65adb6d61a8b99a4cc7cc10c');
@@ -50,7 +55,6 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
       console.error('Error al cargar tipos de producto:', error);
     }
   };
-
   
   const handleChange = (e) => {
     setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
@@ -79,6 +83,7 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
       precio_inventario: 0,
       precio_sugerido: 0
     });
+    setTiposProducto([]);
     setErrors({});
   };
 
@@ -99,10 +104,6 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     }
   };
 
-  useEffect(() => {
-    cargarTiposProducto();
-  }, []);
-  
 
   return (
     <Dialog open={open} onClose={onClose}>

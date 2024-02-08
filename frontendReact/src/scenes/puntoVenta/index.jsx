@@ -6,6 +6,7 @@ import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import PaymentDialogContado from '../../components/PaymentDialogContado';
 import PaymentDialogApartado from '../../components/PaymentDialogApartado';
+import PrintFactura from '../../components/printFactura';
 
 import CachedIcon from '@mui/icons-material/Cached';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,6 +35,7 @@ const PuntoVenta = () => {
   const [openDialogPago, setOpenDialogPago] = useState(false);
   const [openDialogApartado, setOpenDialogApartado] = useState(false);
   const [ventaResumen, setVentaResumen] = useState(null);
+  const [facturaParaImprimir, setFacturaParaImprimir] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("error");
@@ -214,7 +216,12 @@ const PuntoVenta = () => {
     if (totalFactura === 0){
       openSnackbar("No se puede procesar el apartado con total de factura en cero.", "error");
       return;
-    }else if (validarInfoCliente()) {
+    }
+    else if (cliente.nombre === 'Cliente general'){
+      openSnackbar("No se puede realizar el apartado con un cliente génerico.", "error");
+      return;
+    }
+    else if (validarInfoCliente()) {
       const ventaResumen = {
         cliente: cliente,
         productosVendidos: productosVendidos
@@ -249,6 +256,13 @@ const PuntoVenta = () => {
       }
 
       console.log('Venta registrada');
+
+      const facturaGuardada = await response.json();
+      setFacturaParaImprimir(facturaGuardada);
+      imprimirFactura(facturaGuardada);
+
+      console.log(facturaGuardada);
+
       openSnackbar("Se guardó la venta exitosamente", "success");
       handleCancelarCompra()
 
@@ -281,6 +295,22 @@ const PuntoVenta = () => {
       console.error('Error:', error);
       openSnackbar("Falló el guardado del apartado", "error");
     }
+  };
+
+  const imprimirFactura = (datosFactura) => {
+    // Asegúrate de que el componente 'PrintFactura' esté actualizado con los nuevos datos antes de imprimir.
+    setTimeout(() => {
+      const ventanaImpresion = window.open('', '_blank', 'height=600,width=800');
+      ventanaImpresion.document.write('<html><head><title>Impresión de Factura</title>');
+      // Incluye tus estilos aquí o a través de un archivo de estilos
+      ventanaImpresion.document.write('</head><body>');
+      ventanaImpresion.document.write(document.getElementById('facturaParaImprimir').innerHTML);
+      ventanaImpresion.document.write('</body></html>');
+      ventanaImpresion.document.close();
+      ventanaImpresion.focus();
+      ventanaImpresion.print();
+      // ventanaImpresion.close();
+    }, 500); // Este tiempo de espera asegura que el DOM esté actualizado
   };
 
   const columns = [
@@ -570,6 +600,9 @@ const PuntoVenta = () => {
             </Alert>
           </Snackbar>
         </Stack>
+        <div id="facturaParaImprimir" style={{ display: "none" }}>
+          {facturaParaImprimir && <PrintFactura datosFactura={facturaParaImprimir} />}
+        </div>
       </Box>
     </Box>
   );

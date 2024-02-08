@@ -23,7 +23,7 @@ const productoSchema = new mongoose.Schema({
   },
   fecha: {
     type: Date,
-    default: Date.now
+    require: true
   },
 });
 

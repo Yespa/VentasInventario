@@ -54,11 +54,13 @@ exports.actualizarApartado = async (req, res) => {
   // Obtener apartados con límite especificado en la consulta
   exports.obtenerApartadoLimitados = async (req, res) => {
     try {
-      // Obtener el límite de la solicitud y aplicar un límite máximo de 20
+      // Obtener el límite de la solicitud y aplicar un límite máximo de 50
       let limite = parseInt(req.query.limite) || 10;
-      limite = Math.min(limite, 20); // Asegura que el límite no exceda 20
+      limite = Math.min(limite, 50); // Asegura que el límite no exceda 20
 
-      const apartados = await Apartado.find().limit(limite);
+      // const apartados = await Apartado.find().limit(limite);
+      const apartados = await Apartado.find().sort({fechaApartado: -1}).limit(limite);
+
       res.status(200).json(apartados);
     } catch (error) {
       res.status(500).json({ mensaje: error.message });
