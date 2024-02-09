@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useTheme, IconButton, Alert, Button, Snackbar } from "@mui/material";
+import { Box, useTheme, IconButton, Alert, Button, Snackbar, TextField, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -11,6 +11,8 @@ import HandlerTipos from "../../components/HandlerTipos";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SettingsIcon from '@mui/icons-material/Settings';
+import SearchIcon from '@mui/icons-material/Search';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Inventario = () => {
   const theme = useTheme();
@@ -24,6 +26,8 @@ const Inventario = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
+  const [busquedaTipo, setBusquedaTipo] = useState('nombre');
+  const [searchTerm, setSearchTerm] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Puede ser "success" o "error"
@@ -71,6 +75,12 @@ const Inventario = () => {
     setTiposDialogOpen(false);
   };
 
+  const handleBusquedaTipoChange = (event, newBusquedaTipo) => {
+    if (newBusquedaTipo !== null) { // Evita que se deseleccione todo
+      setBusquedaTipo(newBusquedaTipo);
+    }
+  };
+
   const obtenerProductos = async () => {
     try {
       const respuesta = await fetch("http://localhost:3000/api/productos/all?limite=15");
@@ -83,6 +93,25 @@ const Inventario = () => {
       setError(error.message);
       console.log("Error al obtener productos:", error);
     }
+  };
+
+  const realizarBusqueda = async () => {
+    let url = `http://localhost:3000/api/productos/buscar?tipo=${busquedaTipo}&termino=${searchTerm}`;
+    try {
+      const respuesta = await fetch(url);
+      if (!respuesta.ok) {
+        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      }
+      const data = await respuesta.json();
+      setProductos(data);
+    } catch (error) {
+      console.error("Error al realizar la búsqueda:", error);
+    }
+  };
+  
+  const handleRefresh = () => {
+    setSearchTerm('');
+    obtenerProductos();
   };
 
   const handleEdit = (id) => {
@@ -231,57 +260,139 @@ const Inventario = () => {
   ];
 
   return (
-    <Box m="20px">
+    <Box marginLeft="20px" marginRight="20px">
 
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header
-          title="INVENTARIO"
-          subtitle="Listado de todos los productos"
-        />
+      <Box>
+        {/* Título en la parte superior */}
+        <Header title="INVENTARIO" />
 
-        <Box>
-        <Button             
-            sx={{
-              backgroundColor: colors.blueAccent[700],
-              color: colors.grey[100],
-              fontWeight: "bold",
-              padding: "10px 20px",
-              marginRight: "10px",
-            }} onClick={handleOpenAddDialog}>
-          Agregar Producto
-        </Button>
-        <Button
-          sx={{
-            backgroundColor: colors.blueAccent[700],
-            color: colors.grey[100],
-            padding: "10px 20px",
-          }}
-          onClick={openTiposDialog}
-        >
-          <SettingsIcon />
-        </Button>
+        <Box sx={{
+            mt: 2, // Margen superior para separar del título
+            p: 2,
+            bgcolor: colors.primary[400],
+            borderRadius: 3,
+            boxShadow: 4,
+        }}>
+          {/* Título y ToggleButtonGroup en la primera línea */}
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <Typography variant="h5" component="div" sx={{ 
+              fontWeight: 'bold',
+              color: 'primary',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              Buscar producto
+            </Typography>
+            <ToggleButtonGroup
+              color="primary"
+              value={busquedaTipo}
+              exclusive
+              onChange={handleBusquedaTipoChange}
+              size="small"
+              sx={{ height: 'fit-content' }}
+            >
+              <ToggleButton value="nombre" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Nombre</ToggleButton>
+              <ToggleButton value="codigo" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Código</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
 
-        <AddProductDialog
-          open={addDialogOpen}
-          onClose={handleCloseAddDialog}
-          onSave={handleSaveProduct}
-        />
+          {/* Contenedor principal para buscador, botones de búsqueda y botones de acción en la misma línea */}
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+            {/* Buscador y botones de buscar y refresh */}
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
+              <TextField
+                label={`Buscar por ${busquedaTipo}`}
+                variant="outlined"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ flexGrow: 1 }}
+              />
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={realizarBusqueda}
+              >
+                <SearchIcon />
+              </IconButton>
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={handleRefresh}
+              >
+                <RefreshIcon />
+              </IconButton>
+            </Stack>
 
-        <HandlerTipos 
-          open={tiposOpen}
-          onClose={closeTiposDialog} 
-          nameTipo={"Producto"}
-          idTipo={"65adb6d61a8b99a4cc7cc10c"}
-        />
+            {/* Espaciador */}
+            <Box sx={{ width: 800 }}></Box> {/* Ajusta el width según necesites */}
 
+            {/* Botones de "Agregar Producto" y "Settings" */}
+            <Stack direction="row" spacing={1}>
+              <Button
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                  fontWeight: "bold",
+                  padding: "10px 20px",
+                }} 
+                onClick={handleOpenAddDialog}
+              >
+                Agregar Producto
+              </Button>
+              <Button
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                  padding: "10px 20px",
+                }}
+                onClick={openTiposDialog}
+              >
+                <SettingsIcon />
+              </Button>
+            </Stack>
+          </Stack>
+
+          <AddProductDialog
+            open={addDialogOpen}
+            onClose={handleCloseAddDialog}
+            onSave={handleSaveProduct}
+          />
+
+          <HandlerTipos 
+            open={tiposOpen}
+            onClose={closeTiposDialog} 
+            nameTipo={"Producto"}
+            idTipo={"65adb6d61a8b99a4cc7cc10c"}
+          />
         </Box>
+
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       <Box
-        m="40px 0 0 0"
-        height="75vh"
+        m="20px 0 0 0"
+        height="72vh"
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",

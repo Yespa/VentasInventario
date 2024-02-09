@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useTheme, IconButton, Alert, Snackbar } from "@mui/material";
+import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, ToggleButton, ToggleButtonGroup, TextField } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import DetailsApartado from '../../components/detailsApartado';
 
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
+import SearchIcon from '@mui/icons-material/Search';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 
 const Apartados = () => {
@@ -14,6 +16,8 @@ const Apartados = () => {
 
   const [apartados, setApartados] = useState([]);
   const [apartadoSeleccionado, setApartadoSeleccionado] = useState(null);
+  const [busquedaTipo, setBusquedaTipo] = useState('ID');
+  const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -43,6 +47,11 @@ const Apartados = () => {
     setSnackbarOpen(false);
   };
 
+  const handleBusquedaTipoChange = (event, newBusquedaTipo) => {
+    if (newBusquedaTipo !== null) {
+      setBusquedaTipo(newBusquedaTipo);
+    }
+  };
 
   const obtenerApartados = async () => {
     try {
@@ -56,6 +65,25 @@ const Apartados = () => {
       setError(error.message);
       console.log("Error al obtener apartados:", error);
     }
+  };
+
+  const realizarBusqueda = async () => {
+    let url = `http://localhost:3000/api/productos/buscar?tipo=${busquedaTipo}&termino=${searchTerm}`;
+    try {
+      const respuesta = await fetch(url);
+      if (!respuesta.ok) {
+        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      }
+      const data = await respuesta.json();
+      setApartados(data);
+    } catch (error) {
+      console.error("Error al realizar la búsqueda:", error);
+    }
+  };
+  
+  const handleRefresh = () => {
+    setSearchTerm('');
+    obtenerApartados();
   };
 
   const handleSaveEditedApartado = async (editedApartado) => {
@@ -183,19 +211,102 @@ const Apartados = () => {
   ];
 
   return (
-    <Box m="20px">
+    <Box marginLeft="20px" marginRight="20px">
 
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header
-          title="APARTADOS"
-        />
+
+      <Box>
+        {/* Título en la parte superior */}
+        <Header title="APARTADOS" />
+
+        <Box sx={{
+            mt: 2, // Margen superior para separar del título
+            p: 2,
+            bgcolor: colors.primary[400],
+            borderRadius: 3,
+            boxShadow: 4,
+        }}>
+          {/* Título y ToggleButtonGroup en la primera línea */}
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <Typography variant="h5" component="div" sx={{ 
+              fontWeight: 'bold',
+              color: 'primary',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              Buscar apartado
+            </Typography>
+            <ToggleButtonGroup
+              color="primary"
+              value={busquedaTipo}
+              exclusive
+              onChange={handleBusquedaTipoChange}
+              size="small"
+              sx={{ height: 'fit-content' }}
+            >
+              <ToggleButton value="id" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>ID</ToggleButton>
+              <ToggleButton value="nombre cliente" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Nombre cliente</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
+
+          {/* Contenedor principal para buscador, botones de búsqueda y botones de acción en la misma línea */}
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+            {/* Buscador y botones de buscar y refresh */}
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
+              <TextField
+                label={`Buscar por ${busquedaTipo}`}
+                variant="outlined"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ flexGrow: 1 }}
+              />
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={realizarBusqueda}
+              >
+                <SearchIcon />
+              </IconButton>
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={handleRefresh}
+              >
+                <RefreshIcon />
+              </IconButton>
+            </Stack>
+
+            {/* Espaciador */}
+            <Box sx={{ width: 800 }}></Box> {/* Ajusta el width según necesites */}
+          </Stack>
+        </Box>
+
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       <Box
-        m="40px 0 0 0"
-        height="75vh"
+        m="20px 0 0 0"
+        height="73vh"
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",

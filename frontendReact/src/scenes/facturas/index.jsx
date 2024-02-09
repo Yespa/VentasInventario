@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useTheme, IconButton, Alert, Snackbar } from "@mui/material";
+import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, TextField} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -8,6 +8,8 @@ import PrintFactura from '../../components/printFactura';
 
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
 import PrintIcon from '@mui/icons-material/Print';
+import SearchIcon from '@mui/icons-material/Search';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Facturas = () => {
   const theme = useTheme();
@@ -15,6 +17,7 @@ const Facturas = () => {
 
   const [facturas, setFacturas] = useState([]);
   const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -63,6 +66,25 @@ const Facturas = () => {
       setError(error.message);
       console.log("Error al obtener facturas:", error);
     }
+  };
+
+  const realizarBusqueda = async () => {
+    let url = `http://localhost:3000/api/productos/buscar?tipo=&termino=${searchTerm}`;
+    try {
+      const respuesta = await fetch(url);
+      if (!respuesta.ok) {
+        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      }
+      const data = await respuesta.json();
+      setFacturas(data);
+    } catch (error) {
+      console.error("Error al realizar la búsqueda:", error);
+    }
+  };
+  
+  const handleRefresh = () => {
+    setSearchTerm('');
+    obtenerFacturas();
   };
 
   const imprimirFactura = (datosFactura) => {
@@ -202,18 +224,75 @@ const Facturas = () => {
   ];
 
   return (
-    <Box m="20px">
+    <Box marginLeft="20px" marginRight="20px">
 
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header
-          title="FACTURAS"
-        />
+<Box>
+        {/* Título en la parte superior */}
+        <Header title="FACTURAS" />
+
+        <Box sx={{
+            mt: 2, // Margen superior para separar del título
+            p: 2,
+            bgcolor: colors.primary[400],
+            borderRadius: 3,
+            boxShadow: 4,
+        }}>
+          {/* Título y ToggleButtonGroup en la primera línea */}
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <Typography variant="h5" component="div" sx={{ 
+              fontWeight: 'bold',
+              color: 'primary',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              Buscar factura
+            </Typography>
+          </Stack>
+
+          {/* Contenedor principal para buscador, botones de búsqueda y botones de acción en la misma línea */}
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+            {/* Buscador y botones de buscar y refresh */}
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
+              <TextField
+                label={`Buscar por id`}
+                variant="outlined"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ flexGrow: 1 }}
+              />
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={realizarBusqueda}
+              >
+                <SearchIcon />
+              </IconButton>
+              <IconButton
+                sx={{
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                }}
+                onClick={handleRefresh}
+              >
+                <RefreshIcon />
+              </IconButton>
+            </Stack>
+
+            {/* Espaciador */}
+            <Box sx={{ width: 800 }}></Box> {/* Ajusta el width según necesites */}
+          </Stack>
+
+
+        </Box>
+
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       <Box
-        m="40px 0 0 0"
+        m="20px 0 0 0"
         height="75vh"
         sx={{
           "& .MuiDataGrid-root": {
