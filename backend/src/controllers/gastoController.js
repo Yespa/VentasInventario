@@ -1,5 +1,14 @@
 const Gasto = require('../models/gasto');
 
+function convertirCOTaUTC(fechaLocal) {
+  const fecha = new Date(fechaLocal);
+
+  fecha.setHours(fecha.getHours() + 5);
+
+  const fechaUTC = fecha.toISOString().split('.')[0] + "Z";
+  return fechaUTC;
+}
+
 // Agregar un gasto
 exports.agregarGasto = async (req, res) => {
   try {
@@ -56,9 +65,9 @@ exports.actualizarGasto = async (req, res) => {
 // Obtener gastos con límite especificado en la consulta
 exports.obtenerGastosLimitados = async (req, res) => {
   try {
-    // Obtener el límite de la solicitud y aplicar un límite máximo de 50
+    // Obtener el límite de la solicitud y aplicar un límite máximo de 100
     let limite = parseInt(req.query.limite) || 10;
-    limite = Math.min(limite, 50); // Asegura que el límite no exceda 50
+    limite = Math.min(limite, 100); // Asegura que el límite no exceda 100
 
     // const gastos = await Gasto.find().limit(limite);
     const gastos = await Gasto.find().sort({fecha: -1}).limit(limite);
@@ -69,11 +78,28 @@ exports.obtenerGastosLimitados = async (req, res) => {
   }
 };
 
-// Obtener gastos con limite por nombre
-exports.buscarGastosNombreLimitados = async (req, res) => {
+// Obtener gastos con limite por nombre o codigo
+exports.buscarGastosLimitados = async (req, res) => {
   try {
-    const nombre = req.query.nombre;
-    const gastos = await Gasto.find({ nombre: new RegExp(nombre, 'i') }).limit(5);
+    const { nombre, codigo, fechaInicio, fechaFin } = req.query;
+    let query = {};
+
+    if (nombre) {
+      query.nombre = new RegExp(nombre, 'i');
+    } else if (codigo) {
+      const regex = new RegExp("^" + codigo);
+      query.codigo = { $regex: regex };
+    } else if (fechaInicio && fechaFin) {
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+
+      query.fecha = {
+          $gte: fechaInicioUTC,
+          $lte: fechaFinUTC
+        }
+    }
+
+    const gastos = await Gasto.find(query).sort({fecha: -1}).limit(50);
     res.json(gastos);
   } catch (error) {
     res.status(500).send(error.message);

@@ -73,9 +73,9 @@ exports.buscarProductosCodigo = async (req, res) => {
 // Obtener productos con límite especificado en la consulta
 exports.obtenerProductosLimitados = async (req, res) => {
   try {
-    // Obtener el límite de la solicitud y aplicar un límite máximo de 20
+    // Obtener el límite de la solicitud y aplicar un límite máximo de 100
     let limite = parseInt(req.query.limite) || 10;
-    limite = Math.min(limite, 20); // Asegura que el límite no exceda 20
+    limite = Math.min(limite, 100); // Asegura que el límite no exceda 100
 
     const productos = await Producto.find().limit(limite);
     res.status(200).json(productos);
@@ -96,7 +96,7 @@ exports.buscarProductosLimitados = async (req, res) => {
       query.codigo = { $regex: regex };
     }
 
-    const productos = await Producto.find(query).limit(5);
+    const productos = await Producto.find(query).limit(50);
     res.json(productos);
   } catch (error) {
     res.status(500).send(error.message);

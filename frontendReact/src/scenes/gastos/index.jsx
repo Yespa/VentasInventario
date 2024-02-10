@@ -28,6 +28,8 @@ const Gastos = () => {
   const [gastoToEdit, setGastoToEdit] = useState(null);
   const [busquedaTipo, setBusquedaTipo] = useState('nombre');
   const [searchTerm, setSearchTerm] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Puede ser "success" o "error"
@@ -96,21 +98,45 @@ const Gastos = () => {
   };
 
   const realizarBusqueda = async () => {
-    let url = `http://localhost:3000/api/productos/buscar?tipo=${busquedaTipo}&termino=${searchTerm}`;
+
+    let url = `http://localhost:3000/api/gastos/buscar?`;
+    
+    switch (busquedaTipo) {
+      case 'nombre':
+        url += `nombre=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'codigo':
+        url += `codigo=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'fecha':
+        if (fechaInicio && fechaFin) {
+          console.log(fechaInicio)
+          console.log(fechaFin)
+          url += `fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
+        break;
+      default:
+        break;
+    }
+
     try {
-      const respuesta = await fetch(url);
-      if (!respuesta.ok) {
-        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      const response = await fetch(url);
+      console.log(response)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await respuesta.json();
-      setGastos(data);
+      const gastos = await response.json();
+      console.log(gastos)
+      setGastos(gastos);
     } catch (error) {
-      console.error("Error al realizar la búsqueda:", error);
+      console.error("No se pudo obtener los gastos", error);
     }
   };
   
   const handleRefresh = () => {
     setSearchTerm('');
+    setFechaFin('');
+    setFechaInicio('');
     obtenerGastos(); 
   };
 
@@ -314,6 +340,15 @@ const Gastos = () => {
                   },
                 },
               }}>Código</ToggleButton>
+              <ToggleButton value="fecha" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Fecha</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
 
@@ -321,13 +356,44 @@ const Gastos = () => {
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             {/* Buscador y botones de buscar y refresh */}
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
-              <TextField
-                label={`Buscar por ${busquedaTipo}`}
-                variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
+            {busquedaTipo !== 'fecha' && (
+                <TextField
+                  label={`Buscar por ${busquedaTipo}`}
+                  variant="outlined"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{ flexGrow: 1 }}
+                />
+              )}
+              
+              {/* Campos de selección de fecha para cuando la opción 'fecha' esté seleccionada */}
+              {busquedaTipo === 'fecha' && (
+                <>
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de inicio"
+                    variant="outlined"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de fin"
+                    variant="outlined"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </>
+              )}
+
               <IconButton
                 sx={{
                   backgroundColor: colors.blueAccent[700],

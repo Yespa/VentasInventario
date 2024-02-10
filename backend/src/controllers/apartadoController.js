@@ -1,5 +1,14 @@
 const Apartado = require('../models/Apartado');
 
+function convertirCOTaUTC(fechaLocal) {
+  const fecha = new Date(fechaLocal);
+
+  fecha.setHours(fecha.getHours() + 5);
+
+  const fechaUTC = fecha.toISOString().split('.')[0] + "Z";
+  return fechaUTC;
+}
+
 // Crear una nueva apartado
 exports.crearApartado = async (req, res) => {
   try {
@@ -54,9 +63,9 @@ exports.actualizarApartado = async (req, res) => {
   // Obtener apartados con límite especificado en la consulta
   exports.obtenerApartadoLimitados = async (req, res) => {
     try {
-      // Obtener el límite de la solicitud y aplicar un límite máximo de 50
+      // Obtener el límite de la solicitud y aplicar un límite máximo de 100
       let limite = parseInt(req.query.limite) || 10;
-      limite = Math.min(limite, 50); // Asegura que el límite no exceda 20
+      limite = Math.min(limite, 100); // Asegura que el límite no exceda 100
 
       // const apartados = await Apartado.find().limit(limite);
       const apartados = await Apartado.find().sort({fechaApartado: -1}).limit(limite);
@@ -66,3 +75,32 @@ exports.actualizarApartado = async (req, res) => {
       res.status(500).json({ mensaje: error.message });
     }
   };
+
+  // Obtener gastos con limite por id, nombre, documento, fecha
+exports.buscarApartadosLimitados = async (req, res) => {
+  try {
+    const { id, nombre, docIdentidad, fechaInicio, fechaFin } = req.query;
+    let query = {};
+
+    if (nombre) {
+      query['cliente.nombre'] = new RegExp(nombre, 'i');
+    } else if (docIdentidad) {
+      query['cliente.docIdentidad'] = new RegExp(docIdentidad, 'i');
+    }else if (id){
+      query._id = id ;
+    } else if (fechaInicio && fechaFin) {
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+
+      query.fechaApartado = {
+          $gte: fechaInicioUTC,
+          $lte: fechaFinUTC
+        }
+    }
+
+    const apartados = await Apartado.find(query).sort({fecha: -1}).limit(50);
+    res.json(apartados);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};

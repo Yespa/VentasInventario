@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, TextField} from "@mui/material";
+import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, TextField, ToggleButton, ToggleButtonGroup} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -18,6 +18,9 @@ const Facturas = () => {
   const [facturas, setFacturas] = useState([]);
   const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [busquedaTipo, setBusquedaTipo] = useState('id');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -45,6 +48,12 @@ const Facturas = () => {
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
   };
+
+  const handleBusquedaTipoChange = (event, newBusquedaTipo) => {
+    if (newBusquedaTipo !== null) {
+      setBusquedaTipo(newBusquedaTipo);
+    }
+  };
   
   const closeSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
@@ -56,7 +65,7 @@ const Facturas = () => {
 
   const obtenerFacturas = async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=50");
+      const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=100");
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -69,21 +78,42 @@ const Facturas = () => {
   };
 
   const realizarBusqueda = async () => {
-    let url = `http://localhost:3000/api/productos/buscar?tipo=&termino=${searchTerm}`;
+
+    let url = `http://localhost:3000/api/facturas/buscar?`;
+    
+    switch (busquedaTipo) {
+      case 'id':
+        url += `id=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'fecha':
+        if (fechaInicio && fechaFin) {
+          console.log(fechaInicio)
+          console.log(fechaFin)
+          url += `fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
+        break;
+      default:
+        break;
+    }
+
     try {
-      const respuesta = await fetch(url);
-      if (!respuesta.ok) {
-        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      const response = await fetch(url);
+      console.log(response)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await respuesta.json();
-      setFacturas(data);
+      const facturas = await response.json();
+      console.log(facturas)
+      setFacturas(facturas);
     } catch (error) {
-      console.error("Error al realizar la búsqueda:", error);
+      console.error("No se pudo obtener los facturas", error);
     }
   };
   
   const handleRefresh = () => {
     setSearchTerm('');
+    setFechaFin('');
+    setFechaInicio('');
     obtenerFacturas();
   };
 
@@ -226,7 +256,7 @@ const Facturas = () => {
   return (
     <Box marginLeft="20px" marginRight="20px">
 
-<Box>
+      <Box>
         {/* Título en la parte superior */}
         <Header title="FACTURAS" />
 
@@ -247,19 +277,76 @@ const Facturas = () => {
             }}>
               Buscar factura
             </Typography>
+            <ToggleButtonGroup
+              color="primary"
+              value={busquedaTipo}
+              exclusive
+              onChange={handleBusquedaTipoChange}
+              size="small"
+              sx={{ height: 'fit-content' }}
+            >
+              <ToggleButton value="id" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>ID</ToggleButton>
+              <ToggleButton value="fecha" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Fecha</ToggleButton>
+            </ToggleButtonGroup>
           </Stack>
 
           {/* Contenedor principal para buscador, botones de búsqueda y botones de acción en la misma línea */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             {/* Buscador y botones de buscar y refresh */}
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
-              <TextField
-                label={`Buscar por id`}
-                variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
+            {busquedaTipo !== 'fecha' && (
+                <TextField
+                  label={`Buscar por ${busquedaTipo}`}
+                  variant="outlined"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{ flexGrow: 1 }}
+                />
+              )}
+              
+              {/* Campos de selección de fecha para cuando la opción 'fecha' esté seleccionada */}
+              {busquedaTipo === 'fecha' && (
+                <>
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de inicio"
+                    variant="outlined"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de fin"
+                    variant="outlined"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </>
+              )}
               <IconButton
                 sx={{
                   backgroundColor: colors.blueAccent[700],

@@ -16,8 +16,10 @@ const Apartados = () => {
 
   const [apartados, setApartados] = useState([]);
   const [apartadoSeleccionado, setApartadoSeleccionado] = useState(null);
-  const [busquedaTipo, setBusquedaTipo] = useState('ID');
+  const [busquedaTipo, setBusquedaTipo] = useState('id');
   const [searchTerm, setSearchTerm] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -68,21 +70,48 @@ const Apartados = () => {
   };
 
   const realizarBusqueda = async () => {
-    let url = `http://localhost:3000/api/productos/buscar?tipo=${busquedaTipo}&termino=${searchTerm}`;
+
+    let url = `http://localhost:3000/api/apartados/buscar?`;
+    
+    switch (busquedaTipo) {
+      case 'nombre cliente':
+        url += `nombre=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'documento cliente':
+        url += `docIdentidad=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'id':
+        url += `id=${encodeURIComponent(searchTerm)}`;
+        break;
+      case 'fecha':
+        if (fechaInicio && fechaFin) {
+          console.log(fechaInicio)
+          console.log(fechaFin)
+          url += `fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
+        break;
+      default:
+        break;
+    }
+
     try {
-      const respuesta = await fetch(url);
-      if (!respuesta.ok) {
-        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      const response = await fetch(url);
+      console.log(response)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await respuesta.json();
-      setApartados(data);
+      const apartados = await response.json();
+      console.log(apartados)
+      setApartados(apartados);
     } catch (error) {
-      console.error("Error al realizar la búsqueda:", error);
+      console.error("No se pudo obtener los apartados", error);
     }
   };
   
   const handleRefresh = () => {
     setSearchTerm('');
+    setFechaFin('');
+    setFechaInicio('');
     obtenerApartados();
   };
 
@@ -261,6 +290,24 @@ const Apartados = () => {
                   },
                 },
               }}>Nombre cliente</ToggleButton>
+              <ToggleButton value="documento cliente" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Documento cliente</ToggleButton>
+              <ToggleButton value="fecha" sx={{
+                '&.Mui-selected': {
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}>Fecha</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
 
@@ -268,13 +315,43 @@ const Apartados = () => {
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             {/* Buscador y botones de buscar y refresh */}
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
-              <TextField
-                label={`Buscar por ${busquedaTipo}`}
-                variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
+            {busquedaTipo !== 'fecha' && (
+                <TextField
+                  label={`Buscar por ${busquedaTipo}`}
+                  variant="outlined"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{ flexGrow: 1 }}
+                />
+              )}
+              
+              {/* Campos de selección de fecha para cuando la opción 'fecha' esté seleccionada */}
+              {busquedaTipo === 'fecha' && (
+                <>
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de inicio"
+                    variant="outlined"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <TextField
+                    type="datetime-local"
+                    label="Fecha y hora de fin"
+                    variant="outlined"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    sx={{ flexGrow: 1 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </>
+              )}
               <IconButton
                 sx={{
                   backgroundColor: colors.blueAccent[700],

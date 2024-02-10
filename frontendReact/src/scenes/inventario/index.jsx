@@ -96,16 +96,25 @@ const Inventario = () => {
   };
 
   const realizarBusqueda = async () => {
-    let url = `http://localhost:3000/api/productos/buscar?tipo=${busquedaTipo}&termino=${searchTerm}`;
+
+    let url = `http://localhost:3000/api/productos/buscar?`;
+    if (busquedaTipo === 'nombre') {
+      url += `nombre=${encodeURIComponent(searchTerm)}`;
+    } else if (busquedaTipo === 'codigo') {
+      url += `codigo=${encodeURIComponent(searchTerm)}`;
+    }
+
     try {
-      const respuesta = await fetch(url);
-      if (!respuesta.ok) {
-        throw new Error(`HTTP error! status: ${respuesta.status}`);
+      const response = await fetch(url);
+      console.log(response)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await respuesta.json();
-      setProductos(data);
+      const productos = await response.json();
+      console.log(productos)
+      setProductos(productos);
     } catch (error) {
-      console.error("Error al realizar la búsqueda:", error);
+      console.error("No se pudo obtener los productos", error);
     }
   };
   
