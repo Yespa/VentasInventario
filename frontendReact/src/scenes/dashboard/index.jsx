@@ -1,17 +1,18 @@
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import EmailIcon from "@mui/icons-material/Email";
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+
 import TrafficIcon from "@mui/icons-material/Traffic";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
-import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
+
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -56,28 +57,9 @@ const Dashboard = () => {
         >
           <StatBox
             title="12,361"
-            subtitle="Emails Sent"
+            subtitle="Ventas"
             progress="0.75"
             increase="+14%"
-            icon={
-              <EmailIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title="431,225"
-            subtitle="Sales Obtained"
-            progress="0.50"
-            increase="+21%"
             icon={
               <PointOfSaleIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -93,12 +75,31 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
+            title="431,225"
+            subtitle="Gastos"
+            progress="0.50"
+            increase="+21%"
+            icon={
+              <CreditCardIcon
+                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+              />
+            }
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <StatBox
             title="32,441"
-            subtitle="New Clients"
+            subtitle="Utilidades"
             progress="0.30"
             increase="+5%"
             icon={
-              <PersonAddIcon
+              <MonetizationOnIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -113,7 +114,7 @@ const Dashboard = () => {
         >
           <StatBox
             title="1,325,134"
-            subtitle="Traffic Received"
+            subtitle="Apartados"
             progress="0.80"
             increase="+43%"
             icon={
@@ -143,22 +144,8 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Revenue Generated
+                Histórico de Ventas y Gastos
               </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={colors.greenAccent[500]}
-              >
-                $59,342.32
-              </Typography>
-            </Box>
-            <Box>
-              <IconButton>
-                <DownloadOutlinedIcon
-                  sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
-                />
-              </IconButton>
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
@@ -180,7 +167,7 @@ const Dashboard = () => {
             p="15px"
           >
             <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
-              Recent Transactions
+              Top 5 | Articulos más vendidos
             </Typography>
           </Box>
           {mockTransactions.map((transaction, i) => (
@@ -263,18 +250,51 @@ const Dashboard = () => {
           gridColumn="span 4"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
-          padding="30px"
+          overflow="auto"
         >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ marginBottom: "15px" }}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            borderBottom={`4px solid ${colors.primary[500]}`}
+            colors={colors.grey[100]}
+            p="15px"
           >
-            Geography Based Traffic
-          </Typography>
-          <Box height="200px">
-            <GeographyChart isDashboard={true} />
+            <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
+              Top 5 | Articulos menos vendidos
+            </Typography>
           </Box>
+          {mockTransactions.map((transaction, i) => (
+            <Box
+              key={`${transaction.txId}-${i}`}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              borderBottom={`4px solid ${colors.primary[500]}`}
+              p="15px"
+            >
+              <Box>
+                <Typography
+                  color={colors.greenAccent[500]}
+                  variant="h5"
+                  fontWeight="600"
+                >
+                  {transaction.txId}
+                </Typography>
+                <Typography color={colors.grey[100]}>
+                  {transaction.user}
+                </Typography>
+              </Box>
+              <Box color={colors.grey[100]}>{transaction.date}</Box>
+              <Box
+                backgroundColor={colors.greenAccent[500]}
+                p="5px 10px"
+                borderRadius="4px"
+              >
+                ${transaction.cost}
+              </Box>
+            </Box>
+          ))}
         </Box>
       </Box>
     </Box>

@@ -62,7 +62,6 @@ const Facturas = () => {
     setSnackbarOpen(false);
   };
 
-
   const obtenerFacturas = async () => {
     try {
       const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=100");
@@ -107,6 +106,8 @@ const Facturas = () => {
       setFacturas(facturas);
     } catch (error) {
       console.error("No se pudo obtener los facturas", error);
+      openSnackbar("No se ha podido realizar la consulta", "error");
+
     }
   };
   

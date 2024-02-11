@@ -101,3 +101,266 @@ exports.actualizarFactura = async (req, res) => {
       res.status(500).send(error.message);
     }
   };
+
+  // Obtener la suma total de 'totalFactura' en un rango de fechas
+  exports.sumarTotalFacturas = async (req, res) => {
+    try {
+      // Convertir fechas de entrada a UTC si es necesario
+      const fechaInicio = new Date(convertirCOTaUTC(req.query.fechaInicio));
+      const fechaFin = new Date(convertirCOTaUTC(req.query.fechaFin));
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicio,
+              $lte: fechaFin
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null, // Agrupar todos los documentos juntos
+            sumaTotalFactura: { $sum: '$totalFactura' },
+            totalPagoEfectivo: { $sum: '$pagoEfectivo' }, // Sumar total de pagoEfectivo
+            totalPagoTransferencia: { $sum: '$pagoTransferencia' } // Sumar total de pagoTransferencia
+          }
+        }
+      ]);
+  
+      if (resultado.length > 0) {
+        res.status(200).json({
+          sumaTotal: resultado[0].sumaTotalFactura,
+          totalPagoEfectivo: resultado[0].totalPagoEfectivo,
+          totalPagoTransferencia: resultado[0].totalPagoTransferencia
+        });
+      } else {
+        res.status(404).json({ mensaje: 'No se encontraron facturas en el rango de fechas especificado.' });
+      }
+    } catch (error) {
+      console.error('Error al obtener la suma de totalFactura y totales de pagos:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+  
+
+  exports.totalesProductosUtilidad = async (req, res) => {
+    try {
+        // Convertir fechas de entrada a UTC si es necesario
+        const fechaInicio = new Date(convertirCOTaUTC(req.query.fechaInicio));
+        const fechaFin = new Date(convertirCOTaUTC(req.query.fechaFin));
+
+        const resultado = await Factura.aggregate([
+            {
+                $match: {
+                    fechaVenta: {
+                        $gte: fechaInicio,
+                        $lte: fechaFin
+                    }
+                }
+            },
+            {
+                $unwind: '$productosVendidos' // Descomponer el array de productos vendidos
+            },
+            {
+                $group: {
+                    _id: null, // Agrupar todos los documentos juntos
+                    sumaPrecioInventario: {
+                        $sum: {
+                            $multiply: ["$productosVendidos.precio_inventario", "$productosVendidos.cantidad"]
+                        }
+                    },
+                    sumaPrecioUnitarioVenta: {
+                        $sum: {
+                            $multiply: ["$productosVendidos.precio_unitario_venta", "$productosVendidos.cantidad"]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    sumaPrecioInventario: 1,
+                    sumaPrecioUnitarioVenta: 1,
+                    diferencia: { $subtract: ['$sumaPrecioUnitarioVenta', '$sumaPrecioInventario'] }
+                }
+            }
+        ]);
+
+        if (resultado.length > 0) {
+            res.status(200).json(resultado[0]);
+        } else {
+            res.status(404).json({ mensaje: 'No se encontraron facturas en el rango de fechas especificado.' });
+        }
+    } catch (error) {
+        console.error('Error al obtener las sumas y calcular la diferencia con la cantidad:', error);
+        res.status(500).json({ mensaje: error.message });
+    }
+  };
+
+  exports.obtenerProductosMasVendidos = async (req, res) => {
+    try {
+      const { fechaInicio, fechaFin } = req.query;
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicioUTC,
+              $lte: fechaFinUTC
+            }
+          }
+        },
+        { $unwind: '$productosVendidos' },
+        {
+          $group: {
+            _id: '$productosVendidos._id',
+            nombre: { $first: '$productosVendidos.nombre' },
+            totalVendido: { $sum: '$productosVendidos.cantidad' }
+          }
+        },
+        { $sort: { totalVendido: -1 } },
+        { $limit: 5 }
+      ]);
+  
+      res.status(200).json(resultado);
+    } catch (error) {
+      console.error('Error al obtener los productos más vendidos:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+  
+
+  exports.obtenerProductosMenosVendidos = async (req, res) => {
+    try {
+      const { fechaInicio, fechaFin } = req.query;
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicioUTC,
+              $lte: fechaFinUTC
+            }
+          }
+        },
+        { $unwind: '$productosVendidos' },
+        {
+          $group: {
+            _id: '$productosVendidos._id',
+            nombre: { $first: '$productosVendidos.nombre' },
+            totalVendido: { $sum: '$productosVendidos.cantidad' }
+          }
+        },
+        { $sort: { totalVendido: 1 } },
+        { $limit: 5 }
+      ]);
+  
+      res.status(200).json(resultado);
+    } catch (error) {
+      console.error('Error al obtener los productos menos vendidos:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+  
+  exports.obtenerProductosMasUtilidad = async (req, res) => {
+    try {
+      const { fechaInicio, fechaFin } = req.query;
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicioUTC,
+              $lte: fechaFinUTC
+            }
+          }
+        },
+        { $unwind: "$productosVendidos" },
+        {
+          $addFields: {
+            "productosVendidos.utilidad": {
+              $subtract: [
+                "$productosVendidos.precio_unitario_venta",
+                "$productosVendidos.precio_inventario"
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$productosVendidos._id",
+            nombre: { $first: "$productosVendidos.nombre" },
+            totalUtilidad: { $sum: "$productosVendidos.utilidad" }
+          }
+        },
+        { $sort: { totalUtilidad: -1 } },
+        { $limit: 5 }
+      ]);
+  
+      if (resultado.length > 0) {
+        res.status(200).json(resultado);
+      } else {
+        res.status(404).json({ mensaje: 'No se encontraron productos en el rango de fechas especificado.' });
+      }
+    } catch (error) {
+      console.error('Error al obtener el top 5 de productos con más utilidad:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+
+  exports.agruparProductosPorTipoYUtilidad = async (req, res) => {
+    try {
+      const { fechaInicio, fechaFin } = req.query;
+      const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+      const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicioUTC,
+              $lte: fechaFinUTC
+            }
+          }
+        },
+        { $unwind: "$productosVendidos" },
+        {
+          $project: {
+            tipo_producto: "$productosVendidos.tipo_producto",
+            utilidadPorProducto: {
+              $multiply: [
+                { $subtract: ["$productosVendidos.precio_unitario_venta", "$productosVendidos.precio_inventario"] },
+                "$productosVendidos.cantidad"
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$tipo_producto",
+            totalUtilidad: { $sum: "$utilidadPorProducto" }
+          }
+        },
+        { $sort: { totalUtilidad: -1 } } // Opcional: Ordenar por totalUtilidad de forma descendente
+      ]);
+  
+      if (resultado.length > 0) {
+        res.status(200).json(resultado);
+      } else {
+        res.status(404).json({ mensaje: 'No se encontraron productos agrupados por tipo en el rango de fechas especificado.' });
+      }
+    } catch (error) {
+      console.error('Error al agrupar productos por tipo y calcular la utilidad:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+  
+  
+  

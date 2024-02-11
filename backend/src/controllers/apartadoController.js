@@ -104,3 +104,50 @@ exports.buscarApartadosLimitados = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+exports.sumarApartadosPendientes = async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+
+    // Convertir las fechas de entrada a UTC
+    const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio))
+    const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin))
+
+    const resultado = await Apartado.aggregate([
+      {
+        $match: {
+          estado: "PENDIENTE",
+          fechaApartado: {
+            $gte: fechaInicioUTC,
+            $lte: fechaFinUTC
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null, // Agrupar todos los documentos juntos
+          totalFactura: { $sum: "$totalFactura" },
+          saldoPendiente: { $sum: "$saldoPendiente" },
+          totalAbonado: { $sum: "$totalAbonado" },
+          pagoEfectivo: { $sum: "$pagoEfectivo" },
+          pagoTransferencia: { $sum: "$pagoTransferencia" }
+        }
+      }
+    ]);
+
+    if (resultado.length > 0) {
+      res.status(200).json({
+        totalFactura: resultado[0].totalFactura,
+        saldoPendiente: resultado[0].saldoPendiente,
+        totalAbonado: resultado[0].totalAbonado,
+        pagoEfectivo: resultado[0].pagoEfectivo,
+        pagoTransferencia: resultado[0].pagoTransferencia
+      });
+    } else {
+      res.status(404).json({ mensaje: 'No se encontraron apartados pendientes en el rango de fechas especificado.' });
+    }
+  } catch (error) {
+    console.error('Error al sumar apartados pendientes en rango:', error);
+    res.status(500).json({ mensaje: error.message });
+  }
+};

@@ -105,3 +105,80 @@ exports.buscarGastosLimitados = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+// Sumar valor_gasto en un rango de tiempo
+exports.sumarValorGastoEnRango = async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+
+    // Convertir las fechas de entrada a UTC
+    const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio));
+    const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin));
+
+    const resultado = await Gasto.aggregate([
+      {
+        $match: {
+          fecha: {
+            $gte: fechaInicioUTC,
+            $lte: fechaFinUTC
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null, // Agrupar todos los documentos juntos (no agrupar por un campo específico)
+          totalValorGasto: { $sum: '$valor_gasto' }
+        }
+      }
+    ]);
+
+    if (resultado.length > 0) {
+      res.status(200).json({ totalValorGasto: resultado[0].totalValorGasto });
+    } else {
+      res.status(404).json({ mensaje: 'No se encontraron gastos en el rango de fechas especificado.' });
+    }
+  } catch (error) {
+    console.error('Error al sumar valor_gasto:', error);
+    res.status(500).json({ mensaje: error.message });
+  }
+};
+
+// Función para agrupar gastos por tipo_gasto y sumar valor_gasto dentro de un rango de tiempo específico
+exports.sumarGastosPorTipo = async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+    
+    // Convertir las fechas de entrada a UTC
+    const fechaInicioUTC = new Date(convertirCOTaUTC(fechaInicio))
+    const fechaFinUTC = new Date(convertirCOTaUTC(fechaFin))
+
+    const resultado = await Gasto.aggregate([
+      {
+        $match: {
+          fecha: {
+            $gte: fechaInicioUTC,
+            $lte: fechaFinUTC
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$tipo_gasto", // Agrupar por tipo_gasto
+          totalGasto: { $sum: "$valor_gasto" } // Sumar valor_gasto
+        }
+      },
+      {
+        $sort: { totalGasto: -1 } // Opcional: ordenar los resultados por totalGasto de manera descendente
+      }
+    ]);
+
+    if (resultado.length > 0) {
+      res.status(200).json(resultado);
+    } else {
+      res.status(404).json({ mensaje: 'No se encontraron gastos agrupados por tipo en el rango de fechas especificado.' });
+    }
+  } catch (error) {
+    console.error('Error al agrupar gastos por tipo en rango:', error);
+    res.status(500).json({ mensaje: error.message });
+  }
+};
