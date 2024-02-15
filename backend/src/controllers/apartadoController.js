@@ -144,10 +144,59 @@ exports.sumarApartadosPendientes = async (req, res) => {
         pagoTransferencia: resultado[0].pagoTransferencia
       });
     } else {
-      res.status(404).json({ mensaje: 'No se encontraron apartados pendientes en el rango de fechas especificado.' });
+      res.status(200).json({
+        totalFactura: 0,
+        saldoPendiente: 0,
+        totalAbonado: 0,
+        pagoEfectivo: 0,
+        pagoTransferencia: 0
+      });
     }
   } catch (error) {
     console.error('Error al sumar apartados pendientes en rango:', error);
+    res.status(500).json({ mensaje: error.message });
+  }
+};
+
+exports.sumarPagoTransferenciaPorBancoEnPendiente = async (req, res) => {
+  try {
+    // Convertir fechas de entrada a UTC
+    const fechaInicio = new Date(convertirCOTaUTC(req.query.fechaInicio));
+    const fechaFin = new Date(convertirCOTaUTC(req.query.fechaFin));
+
+    const resultado = await Apartado.aggregate([
+      {
+        $match: {
+          fechaApartado: {
+            $gte: fechaInicio,
+            $lte: fechaFin
+          },
+          estado: "PENDIENTE" // Solo considerar los apartados en estado "PENDIENTE"
+        }
+      },
+      {
+        $group: {
+          _id: '$banco', // Agrupa por el campo 'banco'
+          totalPagoTransferencia: { $sum: '$pagoTransferencia' } // Suma 'pagoTransferencia' para cada banco
+        }
+      },
+      {
+        $sort: {
+          totalPagoTransferencia: -1 // Opcional: ordena los resultados por totalPagoTransferencia descendente
+        }
+      }
+    ]);
+
+    // Transformar el resultado en el formato deseado {NombreBanco: SumaTotalTransferencia}
+    const formatoDeseado = resultado.reduce((acc, curr) => {
+      acc[curr._id] = curr.totalPagoTransferencia;
+      return acc;
+    }, {});
+
+    res.status(200).json(formatoDeseado);
+
+  } catch (error) {
+    console.error('Error al sumar pagoTransferencia por banco en estado PENDIENTE:', error);
     res.status(500).json({ mensaje: error.message });
   }
 };

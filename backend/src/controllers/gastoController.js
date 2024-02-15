@@ -135,7 +135,7 @@ exports.sumarValorGastoEnRango = async (req, res) => {
     if (resultado.length > 0) {
       res.status(200).json({ totalValorGasto: resultado[0].totalValorGasto });
     } else {
-      res.status(404).json({ mensaje: 'No se encontraron gastos en el rango de fechas especificado.' });
+      res.status(200).json({ totalValorGasto: 0 });
     }
   } catch (error) {
     console.error('Error al sumar valor_gasto:', error);
@@ -172,13 +172,70 @@ exports.sumarGastosPorTipo = async (req, res) => {
       }
     ]);
 
-    if (resultado.length > 0) {
-      res.status(200).json(resultado);
-    } else {
-      res.status(404).json({ mensaje: 'No se encontraron gastos agrupados por tipo en el rango de fechas especificado.' });
-    }
+    res.status(200).json(resultado);
   } catch (error) {
     console.error('Error al agrupar gastos por tipo en rango:', error);
+    res.status(500).json({ mensaje: error.message });
+  }
+};
+
+exports.obtenerTotalGastosPorMes = async (req, res) => {
+  try {
+    const haceUnAño = new Date();
+    haceUnAño.setMonth(haceUnAño.getMonth() - 11);
+    haceUnAño.setDate(1); // Ajustar al primer día del mes
+    haceUnAño.setHours(0, 0, 0, 0); // Ajustar a la medianoche
+
+    // Ajuste para UTC-5
+    haceUnAño.setHours(haceUnAño.getHours() - 5);
+
+    const resultado = await Gasto.aggregate([
+      {
+        $match: {
+          fecha: {
+            $gte: haceUnAño,
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Ajustar cada fecha a UTC-5 antes de agrupar
+          fechaAjustada: { $subtract: ["$fecha", 5 * 60 * 60000] } // Resta 5 horas en milisegundos
+        }
+      },
+      {
+        $group: {
+          _id: {
+            mes: { $month: "$fechaAjustada" },
+            año: { $year: "$fechaAjustada" }
+          },
+          totalValorGasto: { $sum: "$valor_gasto" },
+          cantidad: { $sum: 1 } // Cantidad de gastos registrados por mes
+        }
+      },
+      {
+        $sort: { "_id.año": 1, "_id.mes": 1 } // Ordenar por año y mes
+      },
+      {
+        $addFields: {
+          "mesNombre": {
+            $arrayElemAt: [ [ "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" ], "$_id.mes" ]
+          }
+        }
+      },
+      {
+        $project: {
+          año: "$_id.año",
+          mes: "$mesNombre",
+          totalValorGasto: 1,
+          cantidad: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(resultado);
+  } catch (error) {
+    console.error('Error al obtener el total de gastos por mes:', error);
     res.status(500).json({ mensaje: error.message });
   }
 };

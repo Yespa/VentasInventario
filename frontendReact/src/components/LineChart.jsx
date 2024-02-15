@@ -1,9 +1,8 @@
 import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
-import { mockLineData as data } from "../data/mockData";
 
-const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
+const LineChart = ({ data, isCustomLineColors = false, isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -44,16 +43,16 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         },
       }}
       colors={isDashboard ? { datum: "color" } : { scheme: "nivo" }} // added
-      margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+      margin={{ top: 50, right: 120, bottom: 50, left: 100 }}
       xScale={{ type: "point" }}
       yScale={{
         type: "linear",
-        min: "auto",
+        min: 0,
         max: "auto",
-        stacked: true,
+        stacked: false,
         reverse: false,
       }}
-      yFormat=" >-.2f"
+      yFormat=" >-d"
       curve="catmullRom"
       axisTop={null}
       axisRight={null}
@@ -68,10 +67,11 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
       }}
       axisLeft={{
         orient: "left",
-        tickValues: 5, // added
+        tickValues: 8,
         tickSize: 3,
         tickPadding: 5,
         tickRotation: 0,
+        format: value => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value),
         legend: isDashboard ? undefined : "count", // added
         legendOffset: -40,
         legendPosition: "middle",

@@ -6,6 +6,7 @@ router.post('/apartados', apartadoController.crearApartado);
 router.get('/apartados/all', apartadoController.obtenerApartadoLimitados);
 router.get('/apartados/buscar', apartadoController.buscarApartadosLimitados);
 router.get('/apartados/totalesApartados', apartadoController.sumarApartadosPendientes);
+router.get('/apartados/totalTransferenciaXBanco', apartadoController.sumarPagoTransferenciaPorBancoEnPendiente);
 router.get('/apartados/:id', apartadoController.obtenerApartado);
 router.put('/apartados/:id', apartadoController.actualizarApartado);
 router.delete('/apartados/:id', apartadoController.eliminarApartado);

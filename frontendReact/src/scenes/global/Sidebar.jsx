@@ -12,11 +12,8 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import CreditScoreOutlinedIcon from '@mui/icons-material/CreditScoreOutlined';
 import BalanceOutlinedIcon from '@mui/icons-material/BalanceOutlined';
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -169,8 +166,8 @@ const Sidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Balance General"
-              to="/contacts"
+              title="Cierre caja"
+              to="/cierre"
               icon={<BalanceOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -199,30 +196,9 @@ const Sidebar = () => {
               Charts
             </Typography>
             <Item
-              title="Bar Chart"
-              to="/bar"
-              icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Pie Chart"
-              to="/pie"
+              title="Estadisticas"
+              to="/estadisticas"
               icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Line Chart"
-              to="/line"
-              icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Geography Chart"
-              to="/geography"
-              icon={<MapOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

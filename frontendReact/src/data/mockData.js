@@ -504,7 +504,7 @@ export const mockPieData = [
   {
     id: "hack",
     label: "hack",
-    value: 239,
+    value: 20,
     color: "hsl(104, 70%, 50%)",
   },
   {

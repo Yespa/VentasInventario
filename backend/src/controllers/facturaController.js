@@ -135,14 +135,59 @@ exports.actualizarFactura = async (req, res) => {
           totalPagoTransferencia: resultado[0].totalPagoTransferencia
         });
       } else {
-        res.status(404).json({ mensaje: 'No se encontraron facturas en el rango de fechas especificado.' });
-      }
+        res.status(200).json({
+          sumaTotal: 0,
+          totalPagoEfectivo: 0,
+          totalPagoTransferencia: 0
+        });      }
     } catch (error) {
       console.error('Error al obtener la suma de totalFactura y totales de pagos:', error);
       res.status(500).json({ mensaje: error.message });
     }
   };
+
+  exports.sumarPagoTransferenciaPorBanco = async (req, res) => {
+    try {
+      // Convertir fechas de entrada a UTC
+      const fechaInicio = new Date(convertirCOTaUTC(req.query.fechaInicio));
+      const fechaFin = new Date(convertirCOTaUTC(req.query.fechaFin));
   
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: fechaInicio,
+              $lte: fechaFin
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$banco', // Agrupa por el campo 'banco'
+            totalPagoTransferencia: { $sum: '$pagoTransferencia' } // Suma 'pagoTransferencia' para cada banco
+          }
+        },
+        {
+          $sort: {
+            totalPagoTransferencia: -1 // Opcional: ordena los resultados por totalPagoTransferencia descendente
+          }
+        }
+      ]);
+  
+      // Transformar el resultado en el formato deseado {NombreBanco: SumaTotalTransferencia}
+      const formatoDeseado = resultado.reduce((acc, curr) => {
+        acc[curr._id] = curr.totalPagoTransferencia;
+        return acc;
+      }, {});
+  
+      res.status(200).json(formatoDeseado);
+  
+    } catch (error) {
+      console.error('Error al sumar pagoTransferencia por banco:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+
 
   exports.totalesProductosUtilidad = async (req, res) => {
     try {
@@ -190,8 +235,11 @@ exports.actualizarFactura = async (req, res) => {
         if (resultado.length > 0) {
             res.status(200).json(resultado[0]);
         } else {
-            res.status(404).json({ mensaje: 'No se encontraron facturas en el rango de fechas especificado.' });
-        }
+          res.status(200).json({
+            sumaPrecioInventario: 0,
+            sumaPrecioUnitarioVenta: 0,
+            diferencia: 0
+          });        }
     } catch (error) {
         console.error('Error al obtener las sumas y calcular la diferencia con la cantidad:', error);
         res.status(500).json({ mensaje: error.message });
@@ -304,11 +352,8 @@ exports.actualizarFactura = async (req, res) => {
         { $limit: 5 }
       ]);
   
-      if (resultado.length > 0) {
-        res.status(200).json(resultado);
-      } else {
-        res.status(404).json({ mensaje: 'No se encontraron productos en el rango de fechas especificado.' });
-      }
+      res.status(200).json(resultado);
+      
     } catch (error) {
       console.error('Error al obtener el top 5 de productos con más utilidad:', error);
       res.status(500).json({ mensaje: error.message });
@@ -351,16 +396,143 @@ exports.actualizarFactura = async (req, res) => {
         { $sort: { totalUtilidad: -1 } } // Opcional: Ordenar por totalUtilidad de forma descendente
       ]);
   
-      if (resultado.length > 0) {
-        res.status(200).json(resultado);
-      } else {
-        res.status(404).json({ mensaje: 'No se encontraron productos agrupados por tipo en el rango de fechas especificado.' });
-      }
+      res.status(200).json(resultado);
+ 
     } catch (error) {
       console.error('Error al agrupar productos por tipo y calcular la utilidad:', error);
       res.status(500).json({ mensaje: error.message });
     }
   };
+
+  exports.obtenerTotalFacturasPorMes = async (req, res) => {
+    try {
+      const haceUnAño = new Date();
+      haceUnAño.setMonth(haceUnAño.getMonth() - 11);
+      haceUnAño.setDate(1);
+      haceUnAño.setHours(0, 0, 0, 0);
   
+      // Ajustar haceUnAño a UTC-5 manualmente para la comparación
+      haceUnAño.setHours(haceUnAño.getHours() - 5);
   
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: haceUnAño,
+            }
+          }
+        },
+        {
+          $addFields: {
+            // Ajustar cada fechaVenta a UTC-5 antes de agrupar
+            fechaVentaAjustada: { $subtract: ["$fechaVenta", 5 * 60 * 60000] } // Resta 5 horas en milisegundos
+          }
+        },
+        {
+          $group: {
+            _id: {
+              mes: { $month: "$fechaVentaAjustada" },
+              año: { $year: "$fechaVentaAjustada" }
+            },
+            totalFactura: { $sum: "$totalFactura" },
+            cantidad: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { "_id.año": 1, "_id.mes": 1 }
+        },
+        {
+          $addFields: {
+            "mesNombre": {
+              $arrayElemAt: [ [ "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" ], "$_id.mes" ]
+            }
+          }
+        },
+        {
+          $project: {
+            año: "$_id.año",
+            mes: "$mesNombre",
+            totalFactura: 1,
+            cantidad: 1
+          }
+        }
+      ]);
+  
+      res.status(200).json(resultado);
+    } catch (error) {
+      console.error('Error al obtener el total de facturas por mes:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
+    
+  exports.obtenerUtilidadPorMes = async (req, res) => {
+    try {
+      const haceUnAño = new Date();
+      haceUnAño.setMonth(haceUnAño.getMonth() - 11);
+      haceUnAño.setDate(1); // Ajustar al primer día del mes
+      haceUnAño.setHours(0, 0, 0, 0); // Ajustar a la medianoche
+  
+      // Ajuste para UTC-5
+      haceUnAño.setHours(haceUnAño.getHours() - 5);
+  
+      const resultado = await Factura.aggregate([
+        {
+          $match: {
+            fechaVenta: {
+              $gte: haceUnAño,
+            }
+          }
+        },
+        {
+          $unwind: "$productosVendidos"
+        },
+        {
+          $addFields: {
+            // Ajustar cada fechaVenta a UTC-5 antes de agrupar
+            fechaVentaAjustada: { $subtract: ["$fechaVenta", 5 * 60 * 60000] } // Resta 5 horas en milisegundos
+          }
+        },
+        {
+          $project: {
+            mes: { $month: "$fechaVentaAjustada" },
+            año: { $year: "$fechaVentaAjustada" },
+            utilidadProducto: {
+              $multiply: [
+                { $subtract: ["$productosVendidos.precio_unitario_venta", "$productosVendidos.precio_inventario"] },
+                "$productosVendidos.cantidad"
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: { mes: "$mes", año: "$año" },
+            utilidadTotalMes: { $sum: "$utilidadProducto" }
+          }
+        },
+        {
+          $sort: { "_id.año": 1, "_id.mes": 1 }
+        },
+        {
+          $addFields: {
+            "mesNombre": {
+              $arrayElemAt: [ [ "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" ], "$_id.mes" ]
+            }
+          }
+        },
+        {
+          $project: {
+            año: "$_id.año",
+            mes: "$mesNombre",
+            utilidadTotal: "$utilidadTotalMes"
+          }
+        }
+      ]);
+  
+      res.status(200).json(resultado);
+    } catch (error) {
+      console.error('Error al obtener la utilidad por mes:', error);
+      res.status(500).json({ mensaje: error.message });
+    }
+  };
   

@@ -8,14 +8,11 @@ import Facturas from "./scenes/facturas";
 import Inventario from "./scenes/inventario";
 import Gastos from "./scenes/gastos";
 import Apartados from "./scenes/apartado";
-import Bar from "./scenes/bar";
+import Cierre from "./scenes/cierre";
 import Form from "./scenes/form";
-import Line from "./scenes/line";
-import Pie from "./scenes/pie";
-import FAQ from "./scenes/faq";
+import Estadisticas from "./scenes/estadisticas";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
-import Calendar from "./scenes/calendar/calendar";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -36,12 +33,9 @@ function App() {
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/gastos" element={<Gastos />} />
               <Route path="/apartados" element={<Apartados />} />
+              <Route path="/cierre" element={<Cierre />} />
               <Route path="/form" element={<Form />} />
-              <Route path="/bar" element={<Bar />} />
-              <Route path="/pie" element={<Pie />} />
-              <Route path="/line" element={<Line />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/estadisticas" element={<Estadisticas />} />
             </Routes>
           </main>
         </div>
