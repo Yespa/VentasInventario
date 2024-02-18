@@ -242,7 +242,23 @@ const PuntoVenta = () => {
 
   const procesarPago = async (datosPago) => {
     console.log("Datos de Pago:", datosPago);
+
     try {
+
+      const responseUpdate = await fetch('http://localhost:3000/api/productos/procesarVenta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPago.productosVendidos)
+      });
+
+      const updateMsg = await responseUpdate.json();
+
+      if (!responseUpdate.ok) {
+        throw new Error(`Unidades insuficientes en inventario | ${updateMsg.mensaje}`);
+      }
+
       const response = await fetch('http://localhost:3000/api/facturas', {
         method: 'POST',
         headers: {
@@ -252,10 +268,12 @@ const PuntoVenta = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al agregar el producto');
+        throw new Error('Error al agregar la factura');
       }
-
+      console.log(datosPago)
       console.log('Venta registrada');
+
+      //Descontar productos
 
       const facturaGuardada = await response.json();
       setFacturaParaImprimir(facturaGuardada);
@@ -268,7 +286,7 @@ const PuntoVenta = () => {
 
     } catch (error) {
       console.error('Error:', error);
-      openSnackbar("Falló el guardado de la venta", "error");
+      openSnackbar(`Falló la venta ${error.message}`, "error");
     }
   };
   
@@ -298,20 +316,37 @@ const PuntoVenta = () => {
   };
 
   const imprimirFactura = (datosFactura) => {
-    // Asegúrate de que el componente 'PrintFactura' esté actualizado con los nuevos datos antes de imprimir.
     setTimeout(() => {
-      const ventanaImpresion = window.open('', '_blank', 'height=600,width=800');
-      ventanaImpresion.document.write('<html><head><title>Impresión de Factura</title>');
-      // Incluye tus estilos aquí o a través de un archivo de estilos
-      ventanaImpresion.document.write('</head><body>');
-      ventanaImpresion.document.write(document.getElementById('facturaParaImprimir').innerHTML);
-      ventanaImpresion.document.write('</body></html>');
+      const ventanaImpresion = window.open('', '_blank', 'width=50mm');
+      ventanaImpresion.document.write(`
+        <html>
+        <head>
+          <title>Impresión de Factura</title>
+          <style>
+            body, html {
+              width: 58mm;
+              font-family: 'Arial', sans-serif;
+            }
+            img {
+              max-width: 30mm;
+              height: auto;
+              margin-top: 5px;
+              margin-bottom: 5px;
+            }
+            /* Añade aquí más estilos según sea necesario */
+          </style>
+        </head>
+        <body>
+          ${document.getElementById('facturaParaImprimir').innerHTML}
+        </body>
+        </html>
+      `);
       ventanaImpresion.document.close();
       ventanaImpresion.focus();
       ventanaImpresion.print();
-      // ventanaImpresion.close();
-    }, 500); // Este tiempo de espera asegura que el DOM esté actualizado
-  };
+      // ventanaImpresion.close(); // Descomenta si deseas que la ventana se cierre automáticamente después de imprimir
+    }, 500);
+  }; 
 
   const columns = [
     { field: "codigo", headerName: "Código" },

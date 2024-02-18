@@ -4,6 +4,7 @@ const productoController = require('../controllers/productoController');
 
 
 router.post('/productos', productoController.agregarProducto);
+router.post('/productos/procesarVenta', productoController.procesaVenta);
 router.get('/productos/all', productoController.obtenerProductosLimitados);
 router.get('/productos/buscar', productoController.buscarProductosLimitados);
 router.get('/productos/buscar/:codigo', productoController.buscarProductosCodigo);

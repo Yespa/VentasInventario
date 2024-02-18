@@ -94,6 +94,7 @@ const FacturaImpresion = ({ datosFactura }) => {
         <p><span style={tituloTexto}>Cliente:</span> {datosFactura.cliente.nombre}</p>
         <p><span style={tituloTexto}>CC/NIT:</span> {datosFactura.cliente.docIdentidad}</p>
         <p><span style={tituloTexto}>Tel:</span> {datosFactura.cliente.telefono}</p>
+        <p><span style={tituloTexto}>Vendedor:</span> {datosFactura.vendedor}</p>
       </div>
       <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
 

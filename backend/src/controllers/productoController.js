@@ -102,3 +102,34 @@ exports.buscarProductosLimitados = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+exports.procesaVenta = async (req, res) => {
+  try {
+    const productosVendidos = req.body;
+    
+    for (const productoVendido of productosVendidos) {
+      // Obtener el producto actual del inventario por ID
+      const producto = await Producto.findById(productoVendido._id);
+      if (!producto) {
+        return res.status(404).json({ mensaje: 'Producto no encontrado' });
+      }
+      
+      // Calcular la nueva cantidad en inventario
+      const nuevaCantidad = producto.cantidad - productoVendido.cantidad;
+
+      if (nuevaCantidad < 0) {
+        return res.status(400).json({ mensaje: `Cantidad en inventario insuficiente - ${producto.nombre}` });
+      }
+      
+      // Actualizar la cantidad del producto en el inventario
+      const productoActualizado = await Producto.findByIdAndUpdate(productoVendido._id, { cantidad: nuevaCantidad }, { new: true });
+      if (!productoActualizado) {
+        return res.status(404).json({ mensaje: 'Producto no encontrado al intentar actualizar' });
+      }
+    }
+    
+    res.json({ mensaje: 'Inventario actualizado correctamente' });
+  } catch (error) {
+    res.status(500).json({ mensaje: error.message });
+  }
+};

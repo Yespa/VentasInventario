@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -26,8 +26,11 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
+import { AuthContext } from './AuthContext';
+
 
 const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen }) => {
+  const { name: userName } = useContext(AuthContext);
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [efectivoEntregado, setEfectivoEntregado] = useState('');
@@ -98,7 +101,7 @@ const PaymentDialog = ({ open, onClose, totalFactura, procesarPago, ventaResumen
         metodoPago,
         totalFactura,
         fechaVenta: fechaVenta.toISOString(),
-        vendedor: "Temp"}
+        vendedor: userName}
 
       if (metodoPago === "efectivo"){
         infoFactura = {
