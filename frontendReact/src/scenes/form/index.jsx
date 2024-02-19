@@ -94,14 +94,12 @@ const Form = () => {
   };
 
   const handleDeleteClick = (id) => {
-    console.log(id)
     const usuarioAEliminar = usuarios.find(usuario => usuario._id === id);
     if (!usuarioAEliminar) {
       console.error("Usuario no encontrado");
       return;
     }
 
-    console.log(usuarioAEliminar)
     const infoConfirm = {
       _id: usuarioAEliminar._id,
       nombre: usuarioAEliminar.name

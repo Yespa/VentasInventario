@@ -4,10 +4,15 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import DetailsApartado from '../../components/detailsApartado';
+import PrintComprobante from '../../components/printComprobanteApartado';
+import ConfirmDialog from "../../components/ConfirmDialog";
+
 
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import PrintIcon from '@mui/icons-material/Print';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
 const Apartados = () => {
@@ -21,6 +26,9 @@ const Apartados = () => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpenDelete, setDialogOpenDelete] = useState(false);
+  const [comprobanteParaImprimir, setComprobanteParaImprimir] = useState(null);
+  const [apartadoAEliminar, setApartadoAEliminar] = useState(null);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -34,6 +42,7 @@ const Apartados = () => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+    setDialogOpenDelete(false)
   };
 
   const openSnackbar = (message, severity) => {
@@ -47,6 +56,49 @@ const Apartados = () => {
       return;
     }
     setSnackbarOpen(false);
+  };
+
+  const handlePrint = (factura) => {
+    console.log(factura)
+    setComprobanteParaImprimir(factura);
+    imprimirComprobante(factura);
+  };
+
+  const handleDeleteClick = (id) => {
+    const apartadoAEliminar = apartados.find(apartado => apartado._id === id);
+    if (!apartadoAEliminar) {
+      console.error("Apartado no encontrado");
+      return;
+    }
+
+    const infoConfirm = {
+      _id: apartadoAEliminar._id,
+      nombre: apartadoAEliminar.cliente.nombre
+    }
+
+    setApartadoAEliminar(infoConfirm);
+    setDialogOpenDelete(true);
+  };
+
+  const handleConfirmDelete = async (id) => {
+    setDialogOpenDelete(false);    
+    // Realiza la petición de borrado al backend
+    try {
+      const response = await fetch(`http://localhost:3000/api/apartados/${id}`, {
+        method: 'DELETE'
+      });
+  
+      if (!response.ok) {
+        throw new Error('Error al eliminar el apartado');
+      }
+  
+      console.log('Apartado eliminado');
+      obtenerApartados(); // Actualiza la lista de apartados
+      openSnackbar("Se ha eliminado el apartado existosamente.", "success");
+    } catch (error) {
+      console.error('Error:', error);
+      openSnackbar("Falló la eliminación del apartado", "error");
+    }
   };
 
   const handleBusquedaTipoChange = (event, newBusquedaTipo) => {
@@ -130,6 +182,10 @@ const Apartados = () => {
       if (!response.ok) {
         throw new Error('Error al actualizar el apartado');
       }
+
+      const comprobanteGuardado = await response.json();
+      setComprobanteParaImprimir(comprobanteGuardado);
+      imprimirComprobante(comprobanteGuardado);
   
       console.log('Apartado actualizado');
       obtenerApartados();
@@ -140,6 +196,40 @@ const Apartados = () => {
       openSnackbar("Falló la actualización del Apartado", "error");
     }
   };
+
+
+  const imprimirComprobante = (datosApartado) => {
+    setTimeout(() => {
+      const ventanaImpresion = window.open('', '_blank', 'width=50mm');
+      ventanaImpresion.document.write(`
+        <html>
+        <head>
+          <title>Impresión de Comprobante</title>
+          <style>
+            body, html {
+              width: 58mm;
+              font-family: 'Arial', sans-serif;
+            }
+            img {
+              max-width: 30mm;
+              height: auto;
+              margin-top: 5px;
+              margin-bottom: 5px;
+            }
+            /* Añade aquí más estilos según sea necesario */
+          </style>
+        </head>
+        <body>
+          ${document.getElementById('comprobanteParaImprimir').innerHTML}
+        </body>
+        </html>
+      `);
+      ventanaImpresion.document.close();
+      ventanaImpresion.focus();
+      // ventanaImpresion.print();
+      // ventanaImpresion.close(); // Descomenta si deseas que la ventana se cierre automáticamente después de imprimir
+    }, 500);
+  }; 
   
   
   useEffect(() => {
@@ -227,6 +317,7 @@ const Apartados = () => {
       field: 'acciones',
       headerName: 'Acciones',
       type: 'actions',
+      flex: 1,
       getActions: (params) => [
         <IconButton
           color="secondary"
@@ -235,6 +326,20 @@ const Apartados = () => {
         >
           <PlagiarismIcon />
         </IconButton>,
+        <IconButton
+        color="secondary"
+          aria-label="imprimir"
+          onClick={() => handlePrint(params.row)}
+        >
+        <PrintIcon/>
+      </IconButton>,
+      <IconButton
+        color="error"
+        aria-label="borrar"
+        onClick={() => handleDeleteClick(params.id)}
+      >
+        <DeleteIcon />
+      </IconButton>
       ],
     }
   ];
@@ -426,11 +531,21 @@ const Apartados = () => {
           onSave={handleSaveEditedApartado}
 
         />
+        <ConfirmDialog
+          open={dialogOpenDelete}
+          onClose={handleCloseDialog}
+          onConfirm={handleConfirmDelete}
+          nameItem={"apartado"}
+          item={apartadoAEliminar}
+        />
         <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={closeSnackbar}>
           <Alert onClose={closeSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
             {snackbarMessage}
           </Alert>
         </Snackbar>
+        <div id="comprobanteParaImprimir" style={{ display: "none" }}>
+          {comprobanteParaImprimir && <PrintComprobante datosApartado={comprobanteParaImprimir} />}
+        </div>
       </Box>
     </Box>
     

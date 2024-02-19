@@ -1,12 +1,12 @@
 import React from 'react';
 
-const ComprobanteImpresion = ({ datosFactura }) => {
+const ComprobanteImpresion = ({ datosApartado }) => {
 
-  const fechaVenta = new Date(datosFactura.fechaVenta);
+  const fechaApartado = new Date(datosApartado.fechaApartado);
 
   // Formatear la fecha en un formato más legible
   // Ejemplo: 31 de enero de 2024, 21:59
-  const fechaFormateada = fechaVenta.toLocaleString('es-CO', {
+  const fechaFormateada = fechaApartado.toLocaleString('es-CO', {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
@@ -66,6 +66,23 @@ const ComprobanteImpresion = ({ datosFactura }) => {
     textAlign: 'left' // Alineación a la izquierda
   };
 
+  const formatDate = (date) => {
+
+    const dateConvert = new Date(date);
+    const dateFormated = dateConvert.toLocaleString('es-CO', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+
+    return dateFormated
+    
+  };
+
 
   // Estilos para la sección de detalles de pago
   const estilosDetallesPago = {
@@ -89,12 +106,13 @@ const ComprobanteImpresion = ({ datosFactura }) => {
       <p>Doradal - Antioquia</p>
       <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
       <div style={estilosTexto}>
-        <p><span style={tituloTexto}>Id:</span> {datosFactura._id}</p>
+        <p><span style={tituloTexto}>COMPROBANTE DE ABONO.</span></p>
+        <p><span style={tituloTexto}>Id:</span> {datosApartado._id}</p>
         <p><span style={tituloTexto}>Fecha:</span> {fechaFormateada}</p>
-        <p><span style={tituloTexto}>Cliente:</span> {datosFactura.cliente.nombre}</p>
-        <p><span style={tituloTexto}>CC/NIT:</span> {datosFactura.cliente.docIdentidad}</p>
-        <p><span style={tituloTexto}>Tel:</span> {datosFactura.cliente.telefono}</p>
-        <p><span style={tituloTexto}>Vendedor:</span> {datosFactura.vendedor}</p>
+        <p><span style={tituloTexto}>Cliente:</span> {datosApartado.cliente.nombre}</p>
+        <p><span style={tituloTexto}>CC/NIT:</span> {datosApartado.cliente.docIdentidad}</p>
+        <p><span style={tituloTexto}>Tel:</span> {datosApartado.cliente.telefono}</p>
+        <p><span style={tituloTexto}>Vendedor:</span> {datosApartado.vendedor}</p>
       </div>
       <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
 
@@ -107,7 +125,7 @@ const ComprobanteImpresion = ({ datosFactura }) => {
           </tr>
         </thead>
         <tbody>
-          {datosFactura.productosVendidos.map((producto) => (
+          {datosApartado.productosVendidos.map((producto) => (
             <tr key={producto._id}>
               <td style={celdaEstilos}>{producto.nombre}</td>
               <td style={celdaEstilos}>{producto.cantidad}</td>
@@ -116,39 +134,59 @@ const ComprobanteImpresion = ({ datosFactura }) => {
           ))}
         </tbody>
       </table>
-
-      
+  
       <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
 
       <div>
-          <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>T. Factura:</span> {datosFactura.totalFactura.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+          <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>T. Factura:</span> {datosApartado.totalFactura.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
       </div>
+
+      <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
+
+      <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'left'}}><span style={tituloTexto}>Historial Abonos</span></p>
+
+      <table style={tablaEstilos}>
+        <thead>
+          <tr>
+            <th style={celdaEstilos}>Fecha</th>
+            <th style={celdaEstilos}>Abono</th>
+          </tr>
+        </thead>
+        <tbody>
+          {datosApartado.historialAbonos.map((abono) => (
+            <tr key={abono._id}>
+              <td style={celdaEstilos}>{formatDate(abono.fechaAbono)}</td>
+              <td style={celdaEstilos}>{abono.abono.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
+
+      <div>
+        <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>Abono Efectivo:</span> {datosApartado.pagoEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+        <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>Abono Transferencia:</span> {datosApartado.pagoTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+      </div>
+
+      <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
 
       <div style={estilosDetallesPago}>
         <div style={{textAlign: 'left', width: '50%'}}>
           <p style={estilosTexto}>
-            <span style={tituloTexto}>Metodo Pago:</span> {datosFactura.metodoPago}
+            <span style={tituloTexto}>Saldo pendiente:</span> {datosApartado.saldoPendiente.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
         </div>
         <div style={{textAlign: 'right', width: '50%'}}>          
-          {datosFactura.metodoPago === 'efectivo' && (
-            <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>Pago:</span> {datosFactura.pagoEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-          )}
-          {datosFactura.metodoPago === 'transferencia' && (
-            <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>Pago:</span> {datosFactura.pagoTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-          )}
-          {datosFactura.metodoPago === 'mixto' && (
-            <>
-              <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>P. Efectivo:</span> {datosFactura.pagoEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-              <p style={{fontSize: '12px', margin: '5px 0', textAlign: 'right'}}><span style={tituloTexto}>P. Transferencia:</span> {datosFactura.pagoTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-            </>
-          )}
+          <p style={estilosTexto}>
+            <span style={tituloTexto}>Saldo abonado:</span> {datosApartado.totalAbonado.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </p>
         </div>
       </div>
 
       <div style={{ borderTop: '1px dotted #000', margin: '5px 0' }}></div>
 
-      <p>*** GRACIAS POR SU COMPRA ***</p>
+      <p>** GRACIAS POR VISITARNOS **</p>
       <p style={{fontSize: "11px"}}>Abrimos todos los días de 9:00 a.m. a 12:00 p.m y 2:00pm 8:00pm, nos dedicamos a ofrecerle un servicio excepcional y atención personalizada.</p>
       <img 
         src="../../assets/instagram_qr.png" 

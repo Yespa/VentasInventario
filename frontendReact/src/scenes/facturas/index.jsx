@@ -234,6 +234,7 @@ const Facturas = () => {
     {
       field: 'acciones',
       headerName: 'Acciones',
+      flex: 1,
       type: 'actions',
       getActions: (params) => [
         <IconButton

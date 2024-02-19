@@ -7,6 +7,7 @@ import Header from "../../components/Header";
 import PaymentDialogContado from '../../components/PaymentDialogContado';
 import PaymentDialogApartado from '../../components/PaymentDialogApartado';
 import PrintFactura from '../../components/printFactura';
+import PrintComprobante from '../../components/printComprobanteApartado';
 
 import CachedIcon from '@mui/icons-material/Cached';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,6 +37,7 @@ const PuntoVenta = () => {
   const [openDialogApartado, setOpenDialogApartado] = useState(false);
   const [ventaResumen, setVentaResumen] = useState(null);
   const [facturaParaImprimir, setFacturaParaImprimir] = useState(null);
+  const [comprobanteParaImprimir, setComprobanteParaImprimir] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("error");
@@ -292,6 +294,7 @@ const PuntoVenta = () => {
   
   const procesarApartado = async (datosApartado) => {
     console.log("Datos de apartado:", datosApartado);
+
     try {
       const response = await fetch('http://localhost:3000/api/apartados', {
         method: 'POST',
@@ -305,9 +308,13 @@ const PuntoVenta = () => {
         throw new Error('Error al agregar el apartado');
       }
 
+      const comprobanteGuardado = await response.json();
+      setComprobanteParaImprimir(comprobanteGuardado);
+      imprimirComprobante(comprobanteGuardado);
+
       console.log('Apartado registrada');
       openSnackbar("Se guardó el apartado exitosamente", "success");
-      // handleCancelarCompra()
+      handleCancelarCompra()
 
     } catch (error) {
       console.error('Error:', error);
@@ -344,6 +351,39 @@ const PuntoVenta = () => {
       ventanaImpresion.document.close();
       ventanaImpresion.focus();
       ventanaImpresion.print();
+      // ventanaImpresion.close(); // Descomenta si deseas que la ventana se cierre automáticamente después de imprimir
+    }, 500);
+  };
+  
+  const imprimirComprobante = (datosApartado) => {
+    setTimeout(() => {
+      const ventanaImpresion = window.open('', '_blank', 'width=50mm');
+      ventanaImpresion.document.write(`
+        <html>
+        <head>
+          <title>Impresión de Comprobante</title>
+          <style>
+            body, html {
+              width: 58mm;
+              font-family: 'Arial', sans-serif;
+            }
+            img {
+              max-width: 30mm;
+              height: auto;
+              margin-top: 5px;
+              margin-bottom: 5px;
+            }
+            /* Añade aquí más estilos según sea necesario */
+          </style>
+        </head>
+        <body>
+          ${document.getElementById('comprobanteParaImprimir').innerHTML}
+        </body>
+        </html>
+      `);
+      ventanaImpresion.document.close();
+      ventanaImpresion.focus();
+      // ventanaImpresion.print();
       // ventanaImpresion.close(); // Descomenta si deseas que la ventana se cierre automáticamente después de imprimir
     }, 500);
   }; 
@@ -637,6 +677,9 @@ const PuntoVenta = () => {
         </Stack>
         <div id="facturaParaImprimir" style={{ display: "none" }}>
           {facturaParaImprimir && <PrintFactura datosFactura={facturaParaImprimir} />}
+        </div>
+        <div id="comprobanteParaImprimir" style={{ display: "none" }}>
+          {comprobanteParaImprimir && <PrintComprobante datosApartado={comprobanteParaImprimir} />}
         </div>
       </Box>
     </Box>

@@ -8,7 +8,7 @@ exports.registrarUsuario = async (req, res) => {
       // Verificar si ya existe un usuario con el mismo username
       const existingUser = await User.findOne({ username });
       if (existingUser) {
-        return res.status(409).json({ mensaje: 'El usuario no está disponible' }); // Código 409 indica conflicto
+        return res.status(409).json({ mensaje: 'El usuario no está disponible' });
       }
   
       const newUser = new User({ username, password, role, name });
@@ -73,8 +73,6 @@ exports.eliminarUsuario = async (req, res) => {
         return res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
   
-      // Opcionalmente, puedes devolver algún mensaje o el usuario eliminado
-      // Pero asegúrate de no exponer información sensible
       res.status(200).json({ mensaje: 'Usuario eliminado con éxito', usuario: usuarioEliminado });
     } catch (error) {
       res.status(500).json({ mensaje: error.message });
@@ -86,8 +84,6 @@ exports.actualizarUsuario = async (req, res) => {
         // Obtén el ID del usuario desde los parámetros de la ruta
         const { id } = req.params;
 
-        // Actualiza al usuario con los datos enviados en el cuerpo de la solicitud (req.body)
-        // Opción { new: true } devuelve el documento actualizado
         const usuarioActualizado = await User.findByIdAndUpdate(id, req.body, { new: true });
 
         if (!usuarioActualizado) {

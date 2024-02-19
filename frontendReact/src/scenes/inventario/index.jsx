@@ -239,11 +239,27 @@ const Inventario = () => {
       field: "precio_inventario",
       headerName: "Precio Inventario",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.precio_inventario.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: "precio_sugerido",
       headerName: "Precio Sugerido",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.precio_sugerido.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: 'acciones',

@@ -34,6 +34,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [efectivoEntregado, setEfectivoEntregado] = useState('');
   const [pagoTransferencia, setPagoTransferencia] = useState('');
+  const [valorFormateadoEfectivo, setValorFormateadoEfectivo] = useState('');
+  const [valorFormateadoTransferencia, setValorFormateadoTransferencia] = useState('');
   const [pendientePago, setPendientePago] = useState(0);
   const [erroresPago, setErroresPago] = useState({});
 
@@ -42,6 +44,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
     setErroresPago({});
     setEfectivoEntregado('')
     setPagoTransferencia('')
+    setValorFormateadoEfectivo('')
+    setValorFormateadoTransferencia('')
     setBancoSeleccionado('')
   };
 
@@ -50,11 +54,39 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
   };
 
   const handleEfectivoEntregadoChange = (event) => {
-    setEfectivoEntregado(Number(event.target.value));
+    // Eliminar puntos y comas para obtener el número real
+    const valorSinFormato = event.target.value.replace(/\D/g, '');
+    const numero = parseInt(valorSinFormato, 10);
+    if (!isNaN(numero)) {
+      // Actualizar el valor numérico real
+      setEfectivoEntregado(numero);
+      // Formatear el número para la visualización y actualizar el estado
+      const formateador = new Intl.NumberFormat('es-ES');
+      const valorConFormato = formateador.format(numero);
+      setValorFormateadoEfectivo(valorConFormato);
+    } else {
+      // Manejar el caso de que el input esté vacío o sea inválido
+      setValorFormateadoEfectivo('');
+      setEfectivoEntregado('');
+    }
   };
 
   const handlePagoTransferenciaChange = (event) => {
-    setPagoTransferencia(Number(event.target.value));
+    // Eliminar puntos y comas para obtener el número real
+    const valorSinFormato = event.target.value.replace(/\D/g, '');
+    const numero = parseInt(valorSinFormato, 10);
+    if (!isNaN(numero)) {
+      // Actualizar el valor numérico real
+      setPagoTransferencia(numero);
+      // Formatear el número para la visualización y actualizar el estado
+      const formateador = new Intl.NumberFormat('es-ES');
+      const valorConFormato = formateador.format(numero);
+      setValorFormateadoTransferencia(valorConFormato);
+    } else {
+      // Manejar el caso de que el input esté vacío o sea inválido
+      setValorFormateadoTransferencia('');
+      setPagoTransferencia('');
+    }
   };
 
   const handleApartado = () => {
@@ -155,6 +187,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
       setEfectivoEntregado('');
       setBancoSeleccionado('');
       setPagoTransferencia('');
+      setValorFormateadoEfectivo('');
+      setValorFormateadoTransferencia('');
       setErroresPago({});
       onClose();
     }
@@ -164,6 +198,8 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
     setEfectivoEntregado('');
     setBancoSeleccionado('');
     setPagoTransferencia('');
+    setValorFormateadoEfectivo('');
+    setValorFormateadoTransferencia('');
     setErroresPago({});
     onClose(); 
   };
@@ -286,10 +322,10 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
             <Box sx={{ width: '50%' }}>
               <TextField
                 label="Pago en efectivo"
-                type="number"
+                type="text"
                 fullWidth
                 margin="normal"
-                value={efectivoEntregado}
+                value={valorFormateadoEfectivo}
                 onChange={handleEfectivoEntregadoChange}
                 error={!!erroresPago.pagoEfectivo}
                 helperText={erroresPago.pagoEfectivo}
@@ -342,10 +378,10 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
               {/* Campo de pago por transferencia */}
               <TextField
                 label="Pago por Transferencia"
-                type="number"
+                type="text"
                 fullWidth
                 margin="normal"
-                value={pagoTransferencia}
+                value={valorFormateadoTransferencia}
                 onChange={handlePagoTransferenciaChange}
                 error={!!erroresPago.pagoTransferencia}
                 helperText={erroresPago.pagoTransferencia}
@@ -394,20 +430,20 @@ const PaymentDialogApartado = ({ open, onClose, totalFactura, procesarApartado, 
               </FormControl>
               <TextField
                 label="Pago por Transferencia"
-                type="number"
+                type="text"
                 fullWidth
                 margin="normal"
-                value={pagoTransferencia}
+                value={valorFormateadoTransferencia}
                 onChange={handlePagoTransferenciaChange}
                 error={!!erroresPago.pagoTransferencia}
                 helperText={erroresPago.pagoTransferencia}
               />
               <TextField
                 label="Pago en Efectivo"
-                type="number"
+                type="text"
                 fullWidth
                 margin="normal"
-                value={efectivoEntregado}
+                value={valorFormateadoEfectivo}
                 onChange={handleEfectivoEntregadoChange}
                 error={!!erroresPago.pagoEfectivo}
                 helperText={erroresPago.pagoEfectivo}

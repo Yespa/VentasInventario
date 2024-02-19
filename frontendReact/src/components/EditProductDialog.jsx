@@ -13,17 +13,27 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
     precio_sugerido: 0
   });
 
+  const [precioInventarioFormateado, setPrecioInventarioFormateado] = useState('');
+  const [precioSugeridoFormateado, setPrecioSugeridoFormateado] = useState('');
   const [tiposProducto, setTiposProducto] = useState([]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (open){
+    if (open) {
       cargarTiposProducto();
     }
     if (productToEdit) {
       setProduct(productToEdit);
+      // Aquí también debes formatear los precios al cargar el producto para editar
+      setPrecioInventarioFormateado(formatNumber(productToEdit.precio_inventario));
+      setPrecioSugeridoFormateado(formatNumber(productToEdit.precio_sugerido));
     }
   }, [open, productToEdit]);
+
+  // Función para formatear números
+  const formatNumber = (number) => {
+    return number.toLocaleString('es-ES');
+  };
 
   const validate = async () => {
     let tempErrors = {};
@@ -49,7 +59,21 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
   };
 
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "precio_inventario" || name === "precio_sugerido") {
+      const valorSinFormato = value.replace(/\D/g, ''); // Elimina todo lo no numérico
+      const numero = valorSinFormato === '' ? 0 : parseInt(valorSinFormato, 10);
+      if (name === "precio_inventario") {
+        setProduct({ ...product, precio_inventario: numero });
+        setPrecioInventarioFormateado(formatNumber(numero));
+      } else if (name === "precio_sugerido") {
+        setProduct({ ...product, precio_sugerido: numero });
+        setPrecioSugeridoFormateado(formatNumber(numero));
+      }
+    } else {
+      setProduct({ ...product, [name]: value });
+    }
   };
 
   const handleSave = async () => {
@@ -176,7 +200,7 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
           required
           margin="dense"
           label="Precio Inventario"
-          type="number"
+          type="text"
           fullWidth
           variant="outlined"
           name="precio_inventario"
@@ -185,14 +209,14 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          value={product.precio_inventario}
+          value={precioInventarioFormateado}
           onChange={handleChange}
         />
         <TextField
           required
           margin="dense"
           label="Precio Sugerido"
-          type="number"
+          type="text"
           fullWidth
           variant="outlined"
           name="precio_sugerido"
@@ -201,7 +225,7 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          value={product.precio_sugerido}
+          value={precioSugeridoFormateado}
           onChange={handleChange}
         />
       </DialogContent>

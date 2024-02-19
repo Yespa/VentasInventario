@@ -31,7 +31,9 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [abonoTransferencia, setAbonoTransferencia] = useState('');
+  const [abonoTransferenciaFormateado, setAbonoTransferenciaFormateado] = useState('');
   const [abonoEfectivo, setAbonoEfectivo] = useState('');
+  const [abonoEfectivoFormateado, setAbonoEfectivoFormateado] = useState('');
   const [pendientePago, setPendientePago] = useState('');
   const [erroresPago, setErroresPago] = useState({});
 
@@ -41,6 +43,8 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
     setMetodoPago(event.target.value);
     setBancoSeleccionado('');
     setAbonoTransferencia('');
+    setAbonoEfectivoFormateado('');
+    setAbonoTransferenciaFormateado('');
     setAbonoEfectivo('');
     setPendientePago(apartadoInfo.saldoPendiente);
     setErroresPago({});
@@ -49,6 +53,8 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
   const resetForm = () => {
     setBancoSeleccionado('');
     setAbonoTransferencia('');
+    setAbonoEfectivoFormateado('');
+    setAbonoTransferenciaFormateado('');
     setAbonoEfectivo('');
     setErroresPago({});
   };
@@ -57,16 +63,22 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
     setBancoSeleccionado(event.target.value);
   };
 
-  const handleabonoEfectivoChange = (event) => {
-    const nuevoAbonoEfectivo = Number(event.target.value);
-    setAbonoEfectivo(nuevoAbonoEfectivo);
-    actualizarPendientePago(nuevoAbonoEfectivo, abonoTransferencia);
+  const handleAbonoEfectivoChange = (event) => {
+    const valorSinFormato = event.target.value.replace(/\D/g, ''); // Elimina caracteres no numéricos
+    const numero = valorSinFormato ? parseInt(valorSinFormato, 10) : 0;
+    setAbonoEfectivo(numero); // Actualiza el valor numérico
+    const formateador = new Intl.NumberFormat('es-ES');
+    setAbonoEfectivoFormateado(formateador.format(numero)); // Actualiza el valor formateado
+    actualizarPendientePago(numero, abonoTransferencia);
   };
   
-  const handleabonoTransferenciaChange = (event) => {
-    const nuevoAbonoTransferencia = Number(event.target.value);
-    setAbonoTransferencia(nuevoAbonoTransferencia);
-    actualizarPendientePago(abonoEfectivo, nuevoAbonoTransferencia);
+  const handleAbonoTransferenciaChange = (event) => {
+    const valorSinFormato = event.target.value.replace(/\D/g, ''); // Elimina caracteres no numéricos
+    const numero = valorSinFormato ? parseInt(valorSinFormato, 10) : 0;
+    setAbonoTransferencia(numero); // Actualiza el valor numérico
+    const formateador = new Intl.NumberFormat('es-ES');
+    setAbonoTransferenciaFormateado(formateador.format(numero)); // Actualiza el valor formateado
+    actualizarPendientePago(abonoEfectivo, numero);
   };
   
   const actualizarPendientePago = (nuevoAbonoEfectivo, nuevoAbonoTransferencia) => {
@@ -441,11 +453,11 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
               <Box flex={1}>
                 <TextField
                   label="Pago en efectivo"
-                  type="number"
+                  type="text"
                   fullWidth
                   margin="normal"
-                  value={abonoEfectivo}
-                  onChange={handleabonoEfectivoChange}
+                  value={abonoEfectivoFormateado}
+                  onChange={handleAbonoEfectivoChange}
                   error={!!erroresPago.abonoEfectivo}
                   helperText={erroresPago.abonoEfectivo}
                 />
@@ -475,11 +487,11 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
                 {/* Campo de pago por transferencia */}
                 <TextField
                   label="Pago por Transferencia"
-                  type="number"
+                  type="text"
                   fullWidth
                   margin="normal"
-                  value={abonoTransferencia}
-                  onChange={handleabonoTransferenciaChange}
+                  value={abonoTransferenciaFormateado}
+                  onChange={handleAbonoTransferenciaChange}
                   error={!!erroresPago.abonoTransferencia}
                   helperText={erroresPago.abonoTransferencia}
                 />
@@ -507,21 +519,21 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
                 </FormControl>
                 <TextField
                   label="Pago por Transferencia"
-                  type="number"
+                  type="text"
                   fullWidth
                   margin="normal"
-                  value={abonoTransferencia}
-                  onChange={handleabonoTransferenciaChange}
+                  value={abonoTransferenciaFormateado}
+                  onChange={handleAbonoTransferenciaChange}
                   error={!!erroresPago.abonoTransferencia}
                   helperText={erroresPago.abonoTransferencia}
                 />
                 <TextField
                   label="Pago en Efectivo"
-                  type="number"
+                  type="text"
                   fullWidth
                   margin="normal"
-                  value={abonoEfectivo}
-                  onChange={handleabonoEfectivoChange}
+                  value={abonoEfectivoFormateado}
+                  onChange={handleAbonoEfectivoChange}
                   error={!!erroresPago.abonoEfectivo}
                   helperText={erroresPago.abonoEfectivo}
                 />

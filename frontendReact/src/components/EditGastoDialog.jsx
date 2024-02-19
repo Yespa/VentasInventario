@@ -12,15 +12,19 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
     fecha: ''
   });
 
+  const [valorGastoFormateado, setValorGastoFormateado] = useState('');
   const [tiposGasto, setTiposGasto] = useState([]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (open){
+    if (open) {
       cargarTiposGasto();
     }
     if (gastoToEdit) {
       setGasto(gastoToEdit);
+      // Formatea el valor_gasto para la visualización
+      const formateador = new Intl.NumberFormat('es-ES');
+      setValorGastoFormateado(formateador.format(gastoToEdit.valor_gasto));
     }
   }, [open, gastoToEdit]);
 
@@ -33,9 +37,18 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
     setErrors(tempErrors);
     return Object.values(tempErrors).every(x => x === ""); // Retorna true si no hay errores
   };
-
   const handleChange = (e) => {
-    setGasto({ ...gasto, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "valor_gasto") {
+      const valorSinFormato = value.replace(/\D/g, '');
+      const numero = valorSinFormato === '' ? 0 : parseInt(valorSinFormato, 10);
+      setGasto({ ...gasto, valor_gasto: numero });
+      const formateador = new Intl.NumberFormat('es-ES');
+      setValorGastoFormateado(valorSinFormato ? formateador.format(numero) : '');
+    } else {
+      setGasto({ ...gasto, [name]: value });
+    }
   };
 
   const handleSave = async () => {
@@ -132,7 +145,7 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
           required
           margin="dense"
           label="Valor"
-          type="number"
+          type="text"
           fullWidth
           variant="outlined"
           name="valor_gasto"
@@ -141,7 +154,7 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          value={gasto.valor_gasto}
+          value={valorGastoFormateado}
           onChange={handleChange}
         />
       </DialogContent>

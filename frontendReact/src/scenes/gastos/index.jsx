@@ -251,6 +251,14 @@ const Gastos = () => {
       field: "valor_gasto",
       headerName: "Valor",
       flex: 1,
+      valueGetter: (params) => {
+        return params.row.valor_gasto.toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
     },
     {
       field: "fecha",
@@ -271,6 +279,7 @@ const Gastos = () => {
       field: 'acciones',
       headerName: 'Acciones',
       type: 'actions',
+      flex: 1,
       getActions: (params) => [
         <IconButton
           color="secondary"

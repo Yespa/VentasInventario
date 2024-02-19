@@ -14,6 +14,8 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     precio_sugerido:0
   });
 
+  const [precioInventarioFormateado, setPrecioInventarioFormateado] = useState('');
+  const [precioSugeridoFormateado, setPrecioSugeridoFormateado] = useState('');
   const [tiposProducto, setTiposProducto] = useState([]);
   const [errors, setErrors] = useState({});
 
@@ -57,14 +59,35 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
   };
   
   const handleChange = (e) => {
-    setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "precio_inventario" || name === "precio_sugerido") {
+      const valorSinFormato = value.replace(/\D/g, '');
+      const numero = valorSinFormato === '' ? 0 : parseInt(valorSinFormato, 10);
+      setNewProduct({ ...newProduct, [name]: numero });
+
+      const formateador = new Intl.NumberFormat('es-ES');
+      const valorConFormato = valorSinFormato ? formateador.format(numero) : '';
+      if (name === "precio_inventario") {
+        setPrecioInventarioFormateado(valorConFormato);
+      } else if (name === "precio_sugerido") {
+        setPrecioSugeridoFormateado(valorConFormato);
+      }
+    } else {
+      setNewProduct({ ...newProduct, [name]: value });
+    }
   };
 
   const handleSave = async () => {
     if (await validate()) {
-        onSave(newProduct);
-        resetForm();
-        onClose();
+      const productoAguardar = {
+        ...newProduct,
+        precio_inventario: Number(newProduct.precio_inventario),
+        precio_sugerido: Number(newProduct.precio_sugerido)
+      };
+      onSave(productoAguardar);
+      resetForm();
+      onClose();
     }
   };
 
@@ -83,6 +106,8 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
       precio_inventario: 0,
       precio_sugerido: 0
     });
+    setPrecioInventarioFormateado('')
+    setPrecioSugeridoFormateado('')
     setTiposProducto([]);
     setErrors({});
   };
@@ -176,7 +201,7 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
           required
           margin="dense"
           label="Precio Inventario"
-          type="number"
+          type="text"
           fullWidth
           variant="outlined"
           name="precio_inventario"
@@ -185,14 +210,14 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          value={newProduct.precio_inventario}
+          value={precioInventarioFormateado}
           onChange={handleChange}
         />
         <TextField
           required
           margin="dense"
           label="Precio Sugerido"
-          type="number"
+          type="text"
           fullWidth
           variant="outlined"
           name="precio_sugerido"
@@ -201,7 +226,7 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          value={newProduct.precio_sugerido}
+          value={precioSugeridoFormateado}
           onChange={handleChange}
         />
       </DialogContent>
