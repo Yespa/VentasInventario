@@ -70,8 +70,12 @@ const PuntoVenta = () => {
 
 
   const handleSelectProducto = (event, newValue) => {
-    if (newValue) {
-      const productoExistenteIndex = productosVendidos.findIndex(p => p._id === newValue._id);
+    // Comprobar si newValue es uno de las opciones disponibles
+    const opcionSeleccionada = opciones.find(opcion => opcion.nombre === newValue || opcion === newValue);
+  
+    if (opcionSeleccionada) {
+      // Continuar con la lógica de selección si es una opción válida
+      const productoExistenteIndex = productosVendidos.findIndex(p => p._id === opcionSeleccionada._id);
   
       if (productoExistenteIndex !== -1) {
         // El producto ya existe, aumentar solo la cantidad
@@ -82,16 +86,20 @@ const PuntoVenta = () => {
       } else {
         // El producto es nuevo, añadir al array con los valores iniciales
         setProductosVendidos([...productosVendidos, {
-          ...newValue,
+          ...opcionSeleccionada,
           cantidad: 1,
-          precio_total: newValue.precio_sugerido,
-          precio_unitario_venta: newValue.precio_sugerido
+          precio_total: opcionSeleccionada.precio_sugerido,
+          precio_unitario_venta: opcionSeleccionada.precio_sugerido
         }]);
       }
+    } else {
+      // Si no es una opción válida, podría optar por no hacer nada o manejar el caso de alguna otra manera
+      console.log("Selección no válida, ignora el evento Enter");
     }
-    setInputValue('');
-    setSelectedValue(null);
+    setInputValue(''); // Limpiar el input después de seleccionar o intentar seleccionar
+    setSelectedValue(null); // Resetear el valor seleccionado
   };
+  
 
   const buscarProductos = async (busqueda) => {
     if (busqueda.length < 3) {

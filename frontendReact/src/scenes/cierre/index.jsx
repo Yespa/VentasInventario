@@ -170,7 +170,7 @@ const Cierre = () => {
           <Typography variant="h4" color={theme.palette.secondary.main}>
             {title}
           </Typography>
-          <Typography variant="h4" color="white" fontWeight="bold">
+          <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">
             {value.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}
           </Typography>
         </Box>
@@ -291,8 +291,8 @@ const Cierre = () => {
           </Typography>
           <StatCard title="Efectivo" value={ventasEfectivo} icon={<MonetizationOnIcon />} />
           <StatCard title="Transferencia" value={ventasTransferencia} icon={<CreditCardIcon />}>
-            <Typography variant="body2" color="white">Bancolombia: {ventasTransferenciaBancolombia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
-            <Typography variant="body2" color="white">Nequi: {ventasTransferenciaNequi.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Bancolombia: {ventasTransferenciaBancolombia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Nequi: {ventasTransferenciaNequi.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
           </StatCard>
           <StatCard title="Total Ventas" value={totalVentas} icon={<PointOfSaleIcon />} />
 
@@ -360,8 +360,8 @@ const Cierre = () => {
           </Typography>
           <StatCard title="Abonos Efectivo" value={abonoEfectivo} icon={<AccountBalanceWalletIcon />} />
           <StatCard title="Abonos Transferencia" value={abonoTransferencia} icon={<CreditCardIcon />}>
-            <Typography variant="body2" color="white">Bancolombia: {abonoTransferenciaBancolombia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
-            <Typography variant="body2" color="white">Nequi: {abonoTransferenciaNequi.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Bancolombia: {abonoTransferenciaBancolombia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Nequi: {abonoTransferenciaNequi.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
           </StatCard>        
           <StatCard title="Total Apartados" value={totalApartados} icon={<ShoppingCartIcon />} />
           <Typography variant="h2" fontWeight="bold" color={theme.palette.secondary.main} mb={2}>

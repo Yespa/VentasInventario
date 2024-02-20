@@ -260,7 +260,7 @@ const Dashboard = () => {
           <Typography variant="h4" color={theme.palette.secondary.main}>
             {title}
           </Typography>
-          <Typography variant="h4" color="white" fontWeight="bold">
+          <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">
             {value.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}
           </Typography>
         </Box>
@@ -394,14 +394,14 @@ const Dashboard = () => {
         {/* ROW 1 */}
 
           <StatCard title="Ventas" value={totalVentas} icon={<PointOfSaleIcon />}>
-            <Typography variant="body2" color="white">Efectivo: {ventasEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
-            <Typography variant="body2" color="white">Transferencia: {ventasTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Efectivo: {ventasEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Transferencia: {ventasTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
           </StatCard>
           <StatCard title="Gastos" value={totalGastos} icon={<CreditCardIcon />} />
           <StatCard title="Utilidad" value={utilidades} icon={<MonetizationOnIcon />} />
           <StatCard title="Apartado" value={totalApartados} icon={<TrafficIcon />}>
-            <Typography variant="body2" color="white">Efectivo: {abonoEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
-            <Typography variant="body2" color="white">Transferencia: {abonoTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Efectivo: {abonoEfectivo.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
+            <Typography variant="body2" color={colors.grey[100]}>Transferencia: {abonoTransferencia.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</Typography>
           </StatCard>
 
         {/* ROW 2 */}

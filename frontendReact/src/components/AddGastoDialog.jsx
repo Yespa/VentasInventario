@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
+import { green } from '@mui/material/colors';
 
 const AddGastoDialog = ({ open, onClose, onSave }) => {
   const [newGasto, setNewGasto] = useState({
@@ -161,8 +162,13 @@ const AddGastoDialog = ({ open, onClose, onSave }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button onClick={handleSave}>Guardar</Button>
+        <Button onClick={handleClose} variant="outlined" color="error">Cancelar</Button>
+        <Button onClick={handleSave} variant="contained" sx={{ 
+          backgroundColor: green[500],
+          '&:hover': {
+            backgroundColor: green[700],
+          },
+        }}>Guardar</Button>
       </DialogActions>
     </Dialog>
   );
