@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { green } from '@mui/material/colors';
 
 const AddProductDialog = ({ open, onClose, onSave }) => {
+  const API_URL = process.env.REACT_APP_API_URL
   const [newProduct, setNewProduct] = useState({
     codigo: '',
     nombre: '',
@@ -20,12 +21,6 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
   const [tiposProducto, setTiposProducto] = useState([]);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (open){
-      cargarTiposProducto();
-    }
-  }, [open]);
-  
   const validate = async () => {
     let tempErrors = {};
     if ( newProduct.codigo !== ''){
@@ -49,15 +44,15 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     return Object.values(tempErrors).every(x => x === ""); // Retorna true si no hay errores
   };
 
-  const cargarTiposProducto = async () => {
+  const cargarTiposProducto = useCallback(async () => {
     try {
-      const respuesta = await fetch('http://localhost:3000/api/tipos/65adb6d61a8b99a4cc7cc10c');
+      const respuesta = await fetch(`${API_URL}/tipos/65adb6d61a8b99a4cc7cc10c`);
       const datos = await respuesta.json();
       setTiposProducto(datos.tipos);
     } catch (error) {
       console.error('Error al cargar tipos de producto:', error);
     }
-  };
+  }, [API_URL]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -112,11 +107,10 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     setTiposProducto([]);
     setErrors({});
   };
-
   
   const validateCode = async (code) => {
     try {
-      const respuesta = await fetch(`http://localhost:3000/api/productos/buscar/${code}`);
+      const respuesta = await fetch(`${API_URL}/productos/buscar/${code}`);
   
       if (respuesta.status === 404) {
         return {}
@@ -130,7 +124,12 @@ const AddProductDialog = ({ open, onClose, onSave }) => {
     }
   };
 
-
+  useEffect(() => {
+    if (open){
+      cargarTiposProducto();
+    }
+  }, [open, cargarTiposProducto]);
+  
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Agregar Nuevo Producto</DialogTitle>

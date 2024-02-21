@@ -12,6 +12,7 @@ import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import SearchIcon from '@mui/icons-material/Search';
 
 const Cierre = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -33,7 +34,7 @@ const Cierre = () => {
   const getTotalesFacturas = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/totalFacturas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/totalFacturas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       console.log(url)
       const response = await fetch(url);
       const infoTotales = await response.json();
@@ -52,7 +53,7 @@ const Cierre = () => {
   const getTotalesPagosTransferenciaXBanco = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/totalTransferenciaXBanco?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/totalTransferenciaXBanco?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -70,7 +71,7 @@ const Cierre = () => {
   const getTotalesGastos = async () => {
     try {
 
-      const url = `http://localhost:3000/api/gastos/totalGastos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/gastos/totalGastos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -86,7 +87,7 @@ const Cierre = () => {
   const getTotalesApartados = async () => {
     try {
 
-      const url = `http://localhost:3000/api/apartados/totalesApartados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/apartados/totalesApartados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -104,7 +105,7 @@ const Cierre = () => {
   const getTotalesAbonoTransferenciaXBanco = async () => {
     try {
 
-      const url = `http://localhost:3000/api/apartados/totalTransferenciaXBanco?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/apartados/totalTransferenciaXBanco?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -122,7 +123,7 @@ const Cierre = () => {
   const getTopMasVendidos = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/topMax?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/topMax?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -203,6 +204,7 @@ const Cierre = () => {
     if (fechaInicio && fechaFin) {
       realizarBusqueda();
     }
+    // eslint-disable-next-line
   }, [fechaInicio, fechaFin]);
 
   return (

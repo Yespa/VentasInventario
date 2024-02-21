@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, TextField, ToggleButton, ToggleButtonGroup} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
@@ -12,6 +12,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Facturas = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -62,9 +63,9 @@ const Facturas = () => {
     setSnackbarOpen(false);
   };
 
-  const obtenerFacturas = async () => {
+  const obtenerFacturas = useCallback(async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/facturas/all?limite=100");
+      const respuesta = await fetch(`${API_URL}/facturas/all?limite=100`);
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -74,11 +75,11 @@ const Facturas = () => {
       setError(error.message);
       console.log("Error al obtener facturas:", error);
     }
-  };
+  }, [API_URL]);
 
   const realizarBusqueda = async () => {
 
-    let url = `http://localhost:3000/api/facturas/buscar?`;
+    let url = `${API_URL}/facturas/buscar?`;
     
     switch (busquedaTipo) {
       case 'id':
@@ -153,7 +154,7 @@ const Facturas = () => {
   
   useEffect(() => {
     obtenerFacturas();
-  }, []);
+  }, [obtenerFacturas]);
 
   const columns = [
     { field: "_id",

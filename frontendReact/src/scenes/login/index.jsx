@@ -7,6 +7,7 @@ import loginImage from './PortadaLogin.png';
 
 const LoginComponent = () => {
 
+    const API_URL = process.env.REACT_APP_API_URL
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -27,7 +28,7 @@ const LoginComponent = () => {
       
     const handleLogin = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/login', {
+            const response = await fetch(`${API_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: usuario, password: contrasena }),

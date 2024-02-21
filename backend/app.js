@@ -1,4 +1,3 @@
-// app.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -15,7 +14,7 @@ const usuarioRoutes = require('./src/routes/usuarioRoutes');
 const app = express();
 
 // Lista de IPs permitidas
-const allowedIps = ['http://127.0.0.1:5001', 'http://localhost:5001', 'http://127.0.0.1:5173', 'http://localhost:5173', 'http://192.168.1.1:3000'];
+const allowedIps = process.env.ALLOWED_IPS   
 
 // Configuración de CORS para permitir múltiples IPs
 const corsOptions = {

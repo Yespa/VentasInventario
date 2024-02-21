@@ -17,6 +17,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 const PuntoVenta = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -107,7 +108,7 @@ const PuntoVenta = () => {
       return;
     }
 
-    let url = `http://localhost:3000/api/productos/buscar?`;
+    let url = `${API_URL}/productos/buscar?`;
     if (busquedaTipo === 'nombre') {
       url += `nombre=${encodeURIComponent(busqueda)}`;
     } else if (busquedaTipo === 'codigo') {
@@ -255,7 +256,7 @@ const PuntoVenta = () => {
 
     try {
 
-      const responseUpdate = await fetch('http://localhost:3000/api/productos/procesarVenta', {
+      const responseUpdate = await fetch(`${API_URL}/productos/procesarVenta`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +270,7 @@ const PuntoVenta = () => {
         throw new Error(`Unidades insuficientes en inventario | ${updateMsg.mensaje}`);
       }
 
-      const response = await fetch('http://localhost:3000/api/facturas', {
+      const response = await fetch(`${API_URL}/facturas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -304,7 +305,7 @@ const PuntoVenta = () => {
     console.log("Datos de apartado:", datosApartado);
 
     try {
-      const response = await fetch('http://localhost:3000/api/apartados', {
+      const response = await fetch(`${API_URL}/apartados`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

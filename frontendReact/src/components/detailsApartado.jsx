@@ -28,6 +28,7 @@ import { styled } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
+  const API_URL = process.env.REACT_APP_API_URL
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [bancoSeleccionado, setBancoSeleccionado] = useState('');
   const [abonoTransferencia, setAbonoTransferencia] = useState('');
@@ -94,7 +95,7 @@ const ApartadoDialog = ({ apartadoInfo, open, onSave, onClose }) => {
   const procesarPago = async (datosPago) => {
     console.log("Datos de Pago:", datosPago);
     try {
-      const response = await fetch('http://localhost:3000/api/facturas', {
+      const response = await fetch(`${API_URL}/facturas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

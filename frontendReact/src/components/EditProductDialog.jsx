@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { green } from '@mui/material/colors';
 
 const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
+  const API_URL = process.env.REACT_APP_API_URL
   const [product, setProduct] = useState({
     codigo: '',
     nombre: '',
@@ -18,18 +19,6 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
   const [precioSugeridoFormateado, setPrecioSugeridoFormateado] = useState('');
   const [tiposProducto, setTiposProducto] = useState([]);
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (open) {
-      cargarTiposProducto();
-    }
-    if (productToEdit) {
-      setProduct(productToEdit);
-      // Aquí también debes formatear los precios al cargar el producto para editar
-      setPrecioInventarioFormateado(formatNumber(productToEdit.precio_inventario));
-      setPrecioSugeridoFormateado(formatNumber(productToEdit.precio_sugerido));
-    }
-  }, [open, productToEdit]);
 
   // Función para formatear números
   const formatNumber = (number) => {
@@ -106,7 +95,7 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
 
   const validateCode = async (code) => {
     try {
-      const respuesta = await fetch(`http://localhost:3000/api/productos/buscar/${code}`);
+      const respuesta = await fetch(`${API_URL}/productos/buscar/${code}`);
   
       if (respuesta.status === 404) {
         return {}
@@ -120,15 +109,27 @@ const EditProductDialog = ({ open, onClose, onSave, productToEdit }) => {
     }
   };
 
-  const cargarTiposProducto = async () => {
+  const cargarTiposProducto = useCallback(async () => {
     try {
-      const respuesta = await fetch('http://localhost:3000/api/tipos/65adb6d61a8b99a4cc7cc10c');
+      const respuesta = await fetch(`${API_URL}/tipos/65adb6d61a8b99a4cc7cc10c`);
       const datos = await respuesta.json();
       setTiposProducto(datos.tipos);
     } catch (error) {
       console.error('Error al cargar tipos de producto:', error);
     }
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    if (open) {
+      cargarTiposProducto();
+    }
+    if (productToEdit) {
+      setProduct(productToEdit);
+      // Aquí también debes formatear los precios al cargar el producto para editar
+      setPrecioInventarioFormateado(formatNumber(productToEdit.precio_inventario));
+      setPrecioSugeridoFormateado(formatNumber(productToEdit.precio_sugerido));
+    }
+  }, [open, productToEdit, cargarTiposProducto]);
 
   return (
     <Dialog open={open} onClose={onClose}>

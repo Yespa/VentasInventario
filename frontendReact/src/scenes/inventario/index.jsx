@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, useTheme, IconButton, Alert, Button, Snackbar, TextField, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
@@ -15,6 +15,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Inventario = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -81,9 +82,9 @@ const Inventario = () => {
     }
   };
 
-  const obtenerProductos = async () => {
+  const obtenerProductos = useCallback(async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/productos/all?limite=15");
+      const respuesta = await fetch(`${API_URL}/productos/all?limite=15`);
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -93,11 +94,11 @@ const Inventario = () => {
       setError(error.message);
       console.log("Error al obtener productos:", error);
     }
-  };
+  }, [API_URL]);
 
   const realizarBusqueda = async () => {
 
-    let url = `http://localhost:3000/api/productos/buscar?`;
+    let url = `${API_URL}/productos/buscar?`;
     if (busquedaTipo === 'nombre') {
       url += `nombre=${encodeURIComponent(searchTerm)}`;
     } else if (busquedaTipo === 'codigo') {
@@ -134,7 +135,7 @@ const Inventario = () => {
     setDialogOpen(false);    
     // Realiza la petición de borrado al backend
     try {
-      const response = await fetch(`http://localhost:3000/api/productos/${id}`, {
+      const response = await fetch(`${API_URL}/productos/${id}`, {
         method: 'DELETE'
       });
   
@@ -154,7 +155,7 @@ const Inventario = () => {
   const handleSaveProduct = async (nuevoProducto) => {
     console.log(nuevoProducto);
     try {
-      const response = await fetch('http://localhost:3000/api/productos', {
+      const response = await fetch(`${API_URL}/productos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ const Inventario = () => {
     try {
       console.log(editedProduct);
 
-      const response = await fetch(`http://localhost:3000/api/productos/${editedProduct._id}`, {
+      const response = await fetch(`${API_URL}/productos/${editedProduct._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ const Inventario = () => {
   
   useEffect(() => {
     obtenerProductos();
-  }, []);
+  }, [obtenerProductos]);
 
   const columns = [
     { field: "codigo",

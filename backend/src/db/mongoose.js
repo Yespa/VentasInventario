@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/celuflashdb';
+const { MONGO_URI, MONGO_DATABASE } = process.env;
+
+const mongoURI = process.env.MONGO_URI || `mongodb://${MONGO_URI}/${MONGO_DATABASE}`;
 
 const connectDB = async () => {
   try {

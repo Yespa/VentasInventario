@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, useTheme, IconButton, Alert, Snackbar, Stack, Typography, ToggleButton, ToggleButtonGroup, TextField } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 
 const Apartados = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -84,7 +85,7 @@ const Apartados = () => {
     setDialogOpenDelete(false);    
     // Realiza la petición de borrado al backend
     try {
-      const response = await fetch(`http://localhost:3000/api/apartados/${id}`, {
+      const response = await fetch(`${API_URL}/apartados/${id}`, {
         method: 'DELETE'
       });
   
@@ -107,9 +108,9 @@ const Apartados = () => {
     }
   };
 
-  const obtenerApartados = async () => {
+  const obtenerApartados = useCallback(async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/apartados/all?limite=50");
+      const respuesta = await fetch(`${API_URL}/apartados/all?limite=50`);
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -119,11 +120,11 @@ const Apartados = () => {
       setError(error.message);
       console.log("Error al obtener apartados:", error);
     }
-  };
+  }, [API_URL]);
 
   const realizarBusqueda = async () => {
 
-    let url = `http://localhost:3000/api/apartados/buscar?`;
+    let url = `${API_URL}/apartados/buscar?`;
     
     switch (busquedaTipo) {
       case 'nombre cliente':
@@ -171,7 +172,7 @@ const Apartados = () => {
     try {
       console.log(editedApartado);
 
-      const response = await fetch(`http://localhost:3000/api/apartados/${editedApartado._id}`, {
+      const response = await fetch(`${API_URL}/apartados/${editedApartado._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -234,7 +235,7 @@ const Apartados = () => {
   
   useEffect(() => {
     obtenerApartados();
-  }, []);
+  }, [obtenerApartados]);
 
   const columns = [
     { field: "_id",

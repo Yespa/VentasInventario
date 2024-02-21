@@ -8,6 +8,7 @@ import Header from "../../components/Header";
 import PieChart from "../../components/PieChart";
 
 const Estadisticas = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -32,7 +33,7 @@ const Estadisticas = () => {
     try {
 
       if (opcionSeleccionada === "ventas"){
-          const url = `http://localhost:3000/api/facturas/tiposUtilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+          const url = `${API_URL}/facturas/tiposUtilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
           const response = await fetch(url);
           const datosApi = await response.json();
           
@@ -47,7 +48,7 @@ const Estadisticas = () => {
           setChartData(datosParseados);
 
       }else if (opcionSeleccionada === "gastos"){
-        const url = `http://localhost:3000/api/gastos/totalGastosTipos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        const url = `${API_URL}/gastos/totalGastosTipos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
         const response = await fetch(url);
         const datosApi = await response.json();
         
@@ -65,7 +66,7 @@ const Estadisticas = () => {
     } catch (error) {
       console.error("Error al obtener los datos del gráfico:", error);
     }
-  }, [opcionSeleccionada, fechaInicio, fechaFin]); // Asegúrate de que todas las dependencias estén listadas aquí
+  }, [opcionSeleccionada, fechaInicio, fechaFin, API_URL]); // Asegúrate de que todas las dependencias estén listadas aquí
 
   return (
     <Box marginLeft="20px" marginRight="20px">

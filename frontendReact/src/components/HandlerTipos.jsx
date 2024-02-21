@@ -4,18 +4,19 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const HandlerTipos = ({ open, onClose, nameTipo, idTipo }) => {
+  const API_URL = process.env.REACT_APP_API_URL
   const [item, setItem] = useState(null);
   const [nuevoTipo, setNuevoTipo] = useState('');
 
   const obtenerDatos = useCallback(async () => {
     try {
-      const respuesta = await fetch(`http://localhost:3000/api/tipos/${idTipo}`);
+      const respuesta = await fetch(`${API_URL}/tipos/${idTipo}`);
       const data = await respuesta.json();
       setItem(data);
     } catch (error) {
       console.error('Error al obtener datos:', error);
     }
-  }, [idTipo]);
+  }, [idTipo, API_URL]);
 
   const handleEliminarTipo = async (index) => {
     console.log(index)
@@ -24,7 +25,7 @@ const HandlerTipos = ({ open, onClose, nameTipo, idTipo }) => {
     console.log(tiposActualizados)
 
     try {
-        const response = await fetch(`http://localhost:3000/api/tipos/${idTipo}`, {
+        const response = await fetch(`${API_URL}/tipos/${idTipo}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -46,7 +47,7 @@ const HandlerTipos = ({ open, onClose, nameTipo, idTipo }) => {
       const tiposActualizados = [...item.tipos, nuevoTipo];
   
       try {
-        const response = await fetch(`http://localhost:3000/api/tipos/${idTipo}`, {
+        const response = await fetch(`${API_URL}/tipos/${idTipo}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { green } from '@mui/material/colors';
 
 const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
+  const API_URL = process.env.REACT_APP_API_URL
   const [gasto, setGasto] = useState({
     codigo: '',
     nombre: '',
@@ -16,18 +17,6 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
   const [valorGastoFormateado, setValorGastoFormateado] = useState('');
   const [tiposGasto, setTiposGasto] = useState([]);
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (open) {
-      cargarTiposGasto();
-    }
-    if (gastoToEdit) {
-      setGasto(gastoToEdit);
-      // Formatea el valor_gasto para la visualización
-      const formateador = new Intl.NumberFormat('es-ES');
-      setValorGastoFormateado(formateador.format(gastoToEdit.valor_gasto));
-    }
-  }, [open, gastoToEdit]);
 
   const validate = async () => {
     let tempErrors = {};
@@ -78,15 +67,27 @@ const EditGastoDialog = ({ open, onClose, onSave, gastoToEdit }) => {
     setTiposGasto([]);
   };
 
-  const cargarTiposGasto = async () => {
+  const cargarTiposGasto = useCallback(async () => {
     try {
-      const respuesta = await fetch('http://localhost:3000/api/tipos/65adb8e6feca839eee16a536');
+      const respuesta = await fetch(`${API_URL}/tipos/65adb8e6feca839eee16a536`);
       const datos = await respuesta.json();
       setTiposGasto(datos.tipos);
     } catch (error) {
       console.error('Error al cargar tipos de gasto:', error);
     }
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    if (open) {
+      cargarTiposGasto();
+    }
+    if (gastoToEdit) {
+      setGasto(gastoToEdit);
+      // Formatea el valor_gasto para la visualización
+      const formateador = new Intl.NumberFormat('es-ES');
+      setValorGastoFormateado(formateador.format(gastoToEdit.valor_gasto));
+    }
+  }, [open, gastoToEdit, cargarTiposGasto]);
 
   return (
     <Dialog open={open} onClose={onClose}>

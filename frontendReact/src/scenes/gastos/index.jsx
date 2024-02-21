@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, useTheme, IconButton, Alert, Button, Snackbar, Stack, Typography, ToggleButton, ToggleButtonGroup, TextField } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
@@ -15,6 +15,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Gastos = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -83,9 +84,9 @@ const Gastos = () => {
     }
   };
 
-  const obtenerGastos= async () => {
+  const obtenerGastos= useCallback(async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/gastos/all?limite=50");
+      const respuesta = await fetch(`${API_URL}/gastos/all?limite=50`);
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -95,11 +96,11 @@ const Gastos = () => {
       setError(error.message);
       console.log("Error al obtener gastos:", error);
     }
-  };
+  }, [API_URL]);
 
   const realizarBusqueda = async () => {
 
-    let url = `http://localhost:3000/api/gastos/buscar?`;
+    let url = `${API_URL}/gastos/buscar?`;
     
     switch (busquedaTipo) {
       case 'nombre':
@@ -151,7 +152,7 @@ const Gastos = () => {
     setDialogOpen(false);    
     // Realiza la petición de borrado al backend
     try {
-      const response = await fetch(`http://localhost:3000/api/gastos/${id}`, {
+      const response = await fetch(`${API_URL}/gastos/${id}`, {
         method: 'DELETE'
       });
   
@@ -171,7 +172,7 @@ const Gastos = () => {
   const handleSaveGasto = async (nuevoGasto) => {
     console.log(nuevoGasto);
     try {
-      const response = await fetch('http://localhost:3000/api/gastos', {
+      const response = await fetch(`${API_URL}/gastos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +198,7 @@ const Gastos = () => {
     try {
       console.log(editedGasto);
 
-      const response = await fetch(`http://localhost:3000/api/gastos/${editedGasto._id}`, {
+      const response = await fetch(`${API_URL}/gastos/${editedGasto._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +222,7 @@ const Gastos = () => {
   
   useEffect(() => {
     obtenerGastos();
-  }, []);
+  }, [obtenerGastos]);
 
   const columns = [
     { field: "codigo",

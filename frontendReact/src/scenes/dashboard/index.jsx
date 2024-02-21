@@ -12,6 +12,7 @@ import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
 
 const Dashboard = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -37,7 +38,7 @@ const Dashboard = () => {
   const getTotalesFacturas = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/totalFacturas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/totalFacturas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       console.log(url)
       const response = await fetch(url);
       const infoTotales = await response.json();
@@ -56,7 +57,7 @@ const Dashboard = () => {
   const getTotalesGastos = async () => {
     try {
 
-      const url = `http://localhost:3000/api/gastos/totalGastos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/gastos/totalGastos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -72,7 +73,7 @@ const Dashboard = () => {
   const getUtilidades = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/utilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/utilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -88,7 +89,7 @@ const Dashboard = () => {
   const getTotalesApartados = async () => {
     try {
 
-      const url = `http://localhost:3000/api/apartados/totalesApartados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/apartados/totalesApartados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -106,7 +107,7 @@ const Dashboard = () => {
   const getTopMasVendidos = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/topMax?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/topMax?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTotales = await response.json();
 
@@ -122,7 +123,7 @@ const Dashboard = () => {
   const getTopMenosVendidos = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/topMin?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/topMin?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTop = await response.json();
 
@@ -137,7 +138,7 @@ const Dashboard = () => {
   const getTopUtilidad = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/topUtilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      const url = `${API_URL}/facturas/topUtilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
       const response = await fetch(url);
       const infoTop = await response.json();
 
@@ -153,7 +154,7 @@ const Dashboard = () => {
   const getVentasXMes = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/totalFacturaMes`;
+      const url = `${API_URL}/facturas/totalFacturaMes`;
       const response = await fetch(url);
       const info = await response.json();
 
@@ -169,7 +170,7 @@ const Dashboard = () => {
   const getGastosXMes = async () => {
     try {
 
-      const url = `http://localhost:3000/api/gastos/totalGastosMes`;
+      const url = `${API_URL}/gastos/totalGastosMes`;
       const response = await fetch(url);
       const info = await response.json();
 
@@ -185,7 +186,7 @@ const Dashboard = () => {
   const getUtilidadXMes = async () => {
     try {
 
-      const url = `http://localhost:3000/api/facturas/totalUtilidadMes`;
+      const url = `${API_URL}/facturas/totalUtilidadMes`;
       const response = await fetch(url);
       const info = await response.json();
 
@@ -288,12 +289,13 @@ const Dashboard = () => {
     setFechaInicio(inicioFormato);
     setFechaFin(finFormato);
   }, []);
-
+  
   useEffect(() => {
     // Asegúrate de que tanto fechaInicio como fechaFin estén establecidos antes de llamar a realizarBusqueda
     if (fechaInicio && fechaFin) {
       realizarBusqueda();
     }
+    // eslint-disable-next-line
   }, [fechaInicio, fechaFin]);
 
   useEffect(() => {
@@ -301,6 +303,7 @@ const Dashboard = () => {
     if (totalVentas !== '' && totalGastos !== '' && utilidades !== '' && datosVentasXMes.length > 0 && datosGastosXMes.length > 0 && datosUtilidadXMes.length > 0) {
       transformarDatos();
     }
+    // eslint-disable-next-line
   }, [totalVentas, totalGastos, utilidades, datosVentasXMes, datosGastosXMes, datosUtilidadXMes]);
   
 

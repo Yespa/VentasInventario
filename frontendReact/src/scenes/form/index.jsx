@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, useTheme, Button, TextField, IconButton, InputAdornment, Snackbar, Alert, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
@@ -20,6 +20,7 @@ const roles = [
 ];
 
 const Form = () => {
+  const API_URL = process.env.REACT_APP_API_URL
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -51,7 +52,7 @@ const Form = () => {
 
   const handleFormSubmit = async (values, { resetForm }) => {
     try {
-      const response = await fetch('http://localhost:3000/api/register', {
+      const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ const Form = () => {
     setDialogOpen(false);    
     // Realiza la petición de borrado al backend
     try {
-      const response = await fetch(`http://localhost:3000/api/user/${id}`, {
+      const response = await fetch(`${API_URL}/user/${id}`, {
         method: 'DELETE'
       });
   
@@ -129,9 +130,9 @@ const Form = () => {
     }
   };
 
-  const obtenerUsuarios = async () => {
+  const obtenerUsuarios = useCallback(async () => {
     try {
-      const respuesta = await fetch("http://localhost:3000/api/user/all");
+      const respuesta = await fetch(`${API_URL}/user/all`);
       if (!respuesta.ok) {
         throw new Error(`HTTP error! status: ${respuesta.status}`);
       }
@@ -140,11 +141,11 @@ const Form = () => {
     } catch (error) {
       console.log("Error al obtener usuarios:", error);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
     obtenerUsuarios();
-  }, []);
+  }, [obtenerUsuarios]);
 
   const columns = [
     {
